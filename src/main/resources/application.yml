@@ -1,0 +1,4 @@
+spring:
+  application.name: secret-stash
+  main.banner-mode: off
+  threads.virtual.enabled: true
