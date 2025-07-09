@@ -1,8 +1,8 @@
-package me.ivansuvorov.secretstash.api.model
+package com.ivansuvorov.secretstash.service.model
 
 import java.time.Instant
 
-data class SecretNoteCreateApiModel(
+data class SecretNoteCreateRequestDto(
     val title: String,
     val content: String,
     val expiresAt: Instant?

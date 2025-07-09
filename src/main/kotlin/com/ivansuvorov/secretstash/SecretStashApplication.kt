@@ -1,4 +1,4 @@
-package me.ivansuvorov.secretstash
+package com.ivansuvorov.secretstash
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

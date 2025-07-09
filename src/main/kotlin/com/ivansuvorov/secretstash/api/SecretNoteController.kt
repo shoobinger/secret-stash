@@ -1,14 +1,15 @@
-package me.ivansuvorov.secretstash.api
+package com.ivansuvorov.secretstash.api
 
-import me.ivansuvorov.secretstash.api.model.SecretNoteApiModel
-import me.ivansuvorov.secretstash.api.model.SecretNoteCreateApiModel
-import me.ivansuvorov.secretstash.service.SecretNoteService
-import me.ivansuvorov.secretstash.service.model.SecretNote
-import me.ivansuvorov.secretstash.service.model.SecretNoteCreateRequest
+import com.ivansuvorov.secretstash.api.model.SecretNote
+import com.ivansuvorov.secretstash.api.model.SecretNoteCreateRequest
+import com.ivansuvorov.secretstash.service.SecretNoteService
+import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
+import com.ivansuvorov.secretstash.service.model.SecretNoteDto
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -19,9 +20,9 @@ class SecretNoteController(
 ) {
 
     @PostMapping
-    fun createSecretNote(apiModel: SecretNoteCreateApiModel): SecretNoteApiModel {
+    fun createSecretNote(@RequestBody apiModel: SecretNoteCreateRequest): SecretNote {
         val secretNote = secretNoteService.create(
-            SecretNoteCreateRequest(
+            SecretNoteCreateRequestDto(
                 title = apiModel.title,
                 content = apiModel.content,
                 expiresAt = apiModel.expiresAt
@@ -31,17 +32,18 @@ class SecretNoteController(
     }
 
     @GetMapping("/{id}")
-    fun getSecretNote(@RequestParam id: UUID): SecretNoteApiModel? {
+    fun getSecretNote(@PathVariable id: UUID): SecretNote? {
         val secretNote = secretNoteService.findById(id)
         return secretNote?.toApiModel()
     }
 
-    private fun SecretNote.toApiModel(): SecretNoteApiModel {
-        return SecretNoteApiModel(
+    private fun SecretNoteDto.toApiModel(): SecretNote {
+        return SecretNote(
             id = id,
             title = title,
             content = content,
-            expiresAt = expiresAt
+            expiresAt = expiresAt,
+            createdAt = createdAt
         )
     }
 }

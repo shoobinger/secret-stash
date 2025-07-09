@@ -1,6 +1,6 @@
-package me.ivansuvorov.secretstash.data.repository
+package com.ivansuvorov.secretstash.data.repository
 
-import me.ivansuvorov.secretstash.data.model.SecretNoteDbModel
+import com.ivansuvorov.secretstash.data.model.SecretNoteDbModel
 import org.springframework.data.repository.CrudRepository
 import java.util.UUID
 
