@@ -55,8 +55,8 @@ class SecretNoteController(
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSecretNote(@PathVariable id: UUID): SecretNote? {
-        TODO()
+    fun deleteSecretNote(@PathVariable id: UUID) {
+        secretNoteService.delete(id)
     }
 
     private fun SecretNoteDto.toApiModel(): SecretNote {

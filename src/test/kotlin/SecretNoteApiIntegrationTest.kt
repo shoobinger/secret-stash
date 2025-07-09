@@ -7,6 +7,7 @@ import com.ivansuvorov.secretstash.api.model.SecretNoteUpdateRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
@@ -87,5 +88,35 @@ class SecretNoteApiIntegrationTest : AbstractTest() {
         assertThat(updated.id).isEqualTo(id)
         assertThat(updated.title).isEqualTo("Test (updated)")
         assertThat(updated.content).isEqualTo("Test content (updated)")
+    }
+
+    @Test
+    fun `should be able to delete a secret note`() {
+        val created = mockMvc.post("/notes") {
+            this.contentType = MediaType.APPLICATION_JSON
+            this.content = objectMapper.writeValueAsString(
+                SecretNoteCreateRequest(
+                    title = "Test",
+                    content = "Test content",
+                    expiresAt = Instant.now().plusSeconds(60L)
+                )
+            )
+        }
+            .andExpect {
+                status { isOk() }
+            }
+            .andReturn()
+            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+
+        val id = created.id
+
+        mockMvc.delete("/notes/$id")
+            .andExpect {
+                status { isOk() }
+            }
+
+        mockMvc.get("/notes/$id") {
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect { status { isNotFound() } }
     }
 }

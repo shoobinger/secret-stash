@@ -5,4 +5,5 @@ import org.springframework.data.repository.CrudRepository
 import java.util.UUID
 
 interface SecretNoteRepository : CrudRepository<SecretNoteDbModel, UUID> {
+    fun findByIdAndStatus(id: UUID, status: String): SecretNoteDbModel?
 }
