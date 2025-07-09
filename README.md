@@ -6,3 +6,5 @@
 - data JDBC vs data JPA
 - test selection
 - status column as pg enum vs string
+- put vs patch
+- web exception from business logic
