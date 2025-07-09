@@ -8,3 +8,4 @@
 - status column as pg enum vs string
 - put vs patch
 - web exception from business logic
+- using spring security

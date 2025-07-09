@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
 import java.time.Instant
 
-class SecretNoteApiIntegrationTest : AbstractTest() {
+class SecretNoteApiTest : AbstractTest() {
 
     @Test
     fun `should be able to create a secret note`() {

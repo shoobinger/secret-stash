@@ -26,6 +26,8 @@ dependencies {
     runtimeOnly("com.zaxxer:HikariCP:5.0.1")
     implementation("org.flywaydb:flyway-database-postgresql:11.10.1")
 
+    implementation("at.favre.lib:bcrypt:0.10.2")
+
     testImplementation(kotlin("test"))
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
