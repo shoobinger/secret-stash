@@ -1,5 +1,6 @@
 package com.ivansuvorov.secretstash.api
 
+import com.ivansuvorov.secretstash.api.auth.JwtAuthInterceptor.Companion.USER_REQUEST_ATTRIBUTE
 import com.ivansuvorov.secretstash.api.model.SecretNote
 import com.ivansuvorov.secretstash.api.model.SecretNoteCreateRequest
 import com.ivansuvorov.secretstash.api.model.SecretNoteUpdateRequest
@@ -33,7 +34,7 @@ class SecretNoteController(
     @PostMapping
     fun createSecretNote(
         @RequestBody createRequest: SecretNoteCreateRequest,
-        @RequestAttribute("user") user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
     ): SecretNote {
         rateLimiterService.checkForUser(user.id)
 
@@ -51,7 +52,7 @@ class SecretNoteController(
     @GetMapping("/{id}")
     fun getSecretNote(
         @PathVariable id: UUID,
-        @RequestAttribute("user") user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
     ): SecretNote? {
         rateLimiterService.checkForUser(user.id)
 
@@ -65,7 +66,7 @@ class SecretNoteController(
     @GetMapping
     fun getLatestSecretNotes(
         @RequestParam("count", required = false, defaultValue = "1000") count: Int,
-        @RequestAttribute("user") user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
     ): List<SecretNote> {
         rateLimiterService.checkForUser(user.id)
 
@@ -84,7 +85,7 @@ class SecretNoteController(
     fun updateSecretNote(
         @PathVariable id: UUID,
         @RequestBody updateRequest: SecretNoteUpdateRequest,
-        @RequestAttribute("user") user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
     ): SecretNote {
         rateLimiterService.checkForUser(user.id)
 
@@ -101,7 +102,10 @@ class SecretNoteController(
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSecretNote(@PathVariable id: UUID, @RequestAttribute("user") user: UserDto) {
+    fun deleteSecretNote(
+        @PathVariable id: UUID,
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
+    ) {
         rateLimiterService.checkForUser(user.id)
 
         secretNoteService.delete(

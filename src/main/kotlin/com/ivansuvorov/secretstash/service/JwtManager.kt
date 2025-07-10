@@ -12,7 +12,9 @@ import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import java.util.Date
 import java.util.UUID
@@ -51,11 +53,11 @@ class JwtManager(
 
         val claims = jwt.jwtClaimsSet
         if (claims.issuer != properties.issuer) {
-            TODO()
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid issuer")
         }
 
         if (claims.expirationTime.before(Date())) {
-            TODO()
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is expired")
         }
 
         return jwt.jwtClaimsSet.subject

@@ -1,10 +1,12 @@
 package com.ivansuvorov.secretstash.service
 
 import com.ivansuvorov.secretstash.configuration.properties.RateLimitProperties
-import com.ivansuvorov.secretstash.error.RateLimitException
 import io.github.resilience4j.ratelimiter.RateLimiter
 import io.github.resilience4j.ratelimiter.RateLimiterConfig
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.server.ResponseStatusException
 import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -32,7 +34,7 @@ class RateLimiterService(
 
     fun checkGlobal() {
         if (!globalLimiter.acquirePermission()) {
-            throw RateLimitException()
+            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS)
         }
     }
 
@@ -42,7 +44,7 @@ class RateLimiterService(
         }
 
         if (!rateLimiter.acquirePermission()) {
-            throw RateLimitException()
+            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS)
         }
     }
 }

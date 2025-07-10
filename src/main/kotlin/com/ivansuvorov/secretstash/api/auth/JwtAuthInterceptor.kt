@@ -14,6 +14,10 @@ class JwtAuthInterceptor(
     private val jwtManager: JwtManager
 ) : HandlerInterceptor {
 
+    companion object {
+        const val USER_REQUEST_ATTRIBUTE = "user"
+    }
+
     @Throws(Exception::class)
     override fun preHandle(
         request: HttpServletRequest,
@@ -37,7 +41,7 @@ class JwtAuthInterceptor(
             return false
         }
 
-        request.setAttribute("user", user)
+        request.setAttribute(USER_REQUEST_ATTRIBUTE, user)
 
         return true
     }

@@ -67,7 +67,10 @@ abstract class AbstractTest {
         }
     }
 
-    protected fun registerUser(email: String = "test-${UUID.randomUUID()}@test.com", password: String = "123"): String {
+    protected fun registerUser(
+        email: String = "test-${UUID.randomUUID()}@test.com",
+        password: String = "123"
+    ): String {
         mockMvc.post("/users/register") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(
