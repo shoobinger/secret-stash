@@ -9,6 +9,7 @@ import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
 import com.ivansuvorov.secretstash.service.model.UserDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -94,6 +95,15 @@ class SecretNoteService(
         ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Secret note not found or inaccessible")
 
         return secretNote.toDto()
+    }
+
+    fun findLatest(caller: UserDto, count: Int): List<SecretNoteDto> {
+        val pageRequest = PageRequest.of(0, count)
+        return secretNoteRepository.findByOwnerIdAndStatusOrderByCreatedAtDesc(
+            ownerId = caller.id,
+            status = SecretNoteStatus.ACTIVE.name,
+            pageable = pageRequest
+        ).map { it.toDto() }
     }
 
     fun SecretNoteDbModel.toDto(): SecretNoteDto {

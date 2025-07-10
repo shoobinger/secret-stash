@@ -9,6 +9,7 @@ import com.ivansuvorov.secretstash.service.model.SecretNoteDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
 import com.ivansuvorov.secretstash.service.model.UserDto
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController
@@ -51,6 +54,22 @@ class SecretNoteController(
             noteId = id
         )
         return secretNote?.toApiModel()
+    }
+
+    @GetMapping
+    fun getLatestSecretNotes(
+        @RequestParam("count", required = false, defaultValue = "1000") count: Int,
+        httpRequest: HttpServletRequest
+    ): List<SecretNote> {
+        if (count > 1000) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't retrieve more than 1000 notes")
+        }
+
+        val secretNotes = secretNoteService.findLatest(
+            caller = httpRequest.getAttribute("user") as UserDto,
+            count = count
+        )
+        return secretNotes.map { it.toApiModel() }
     }
 
     @PutMapping("/{id}")

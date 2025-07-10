@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
 import java.time.Instant
+import java.util.UUID
 
 class SecretNoteApiTest : AbstractTest() {
 
@@ -56,25 +57,7 @@ class SecretNoteApiTest : AbstractTest() {
     @Test
     fun `should be able to update a secret note`() {
         val userToken = registerUser()
-
-        val created = mockMvc.post("/notes") {
-            header("Authorization", "Bearer $userToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
-                )
-            )
-        }
-            .andExpect {
-                status { isOk() }
-            }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
-
-        val id = created.id
+        val id = createNote(userToken)
 
         val updated = mockMvc.put("/notes/$id") {
             header("Authorization", "Bearer $userToken")
@@ -101,25 +84,7 @@ class SecretNoteApiTest : AbstractTest() {
     @Test
     fun `should be able to delete a secret note`() {
         val userToken = registerUser()
-
-        val created = mockMvc.post("/notes") {
-            header("Authorization", "Bearer $userToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
-                )
-            )
-        }
-            .andExpect {
-                status { isOk() }
-            }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
-
-        val id = created.id
+        val id = createNote(userToken)
 
         mockMvc.delete("/notes/$id") {
             header("Authorization", "Bearer $userToken")
@@ -131,6 +96,33 @@ class SecretNoteApiTest : AbstractTest() {
             header("Authorization", "Bearer $userToken")
             accept = MediaType.APPLICATION_JSON
         }.andExpect { status { isNotFound() } }
+    }
+
+    @Test
+    fun `should be able to retrieve latest notes`() {
+        val userToken = registerUser()
+
+        createNote(userToken)
+
+        val count = 10
+        // Create 10 more notes.
+        val notes = (1..count).map {
+            createNote(userToken)
+        }
+
+        // Retrieve latest notes (should not include the first note)
+        val latestNotes = mockMvc.get("/notes?count=$count") {
+            header("Authorization", "Bearer $userToken")
+            accept = MediaType.APPLICATION_JSON
+        }
+            .andExpect {
+                status { isOk() }
+            }
+            .andReturn()
+            .response.contentAsString.let { objectMapper.readValue<List<SecretNote>>(it) }
+
+        assertThat(latestNotes).hasSize(count)
+        assertThat(latestNotes.map { it.id }).isEqualTo(notes.reversed())
     }
 
     @Test
@@ -157,22 +149,7 @@ class SecretNoteApiTest : AbstractTest() {
         val secondUserToken = registerUser()
 
         // First user creates a new note.
-        val created = mockMvc.post("/notes") {
-            header("Authorization", "Bearer $firstUserToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
-                )
-            )
-        }
-            .andExpect { status { isOk() } }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
-
-        val id = created.id
+        val id = createNote(firstUserToken)
 
         // Second user tries to access this note.
         mockMvc.get("/notes/$id") {
@@ -200,5 +177,24 @@ class SecretNoteApiTest : AbstractTest() {
         }.andExpect {
             status { isNotFound() }
         }
+    }
+
+    private fun createNote(userToken: String): UUID {
+        val created = mockMvc.post("/notes") {
+            header("Authorization", "Bearer $userToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                SecretNoteCreateRequest(
+                    title = "Test",
+                    content = "Test content",
+                    expiresAt = Instant.now().plusSeconds(60L)
+                )
+            )
+        }
+            .andExpect { status { isOk() } }
+            .andReturn()
+            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+
+        return created.id
     }
 }

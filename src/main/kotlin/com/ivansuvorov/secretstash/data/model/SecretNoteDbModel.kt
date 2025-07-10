@@ -1,6 +1,5 @@
 package com.ivansuvorov.secretstash.data.model
 
-import com.ivansuvorov.secretstash.service.model.SecretNoteStatus
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant

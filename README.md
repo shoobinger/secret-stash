@@ -10,3 +10,4 @@
 - web exception from business logic
 - using spring security
 - 404 as return code
+- pagination for `latest` endpoint
