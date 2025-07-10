@@ -26,7 +26,6 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 abstract class AbstractTest {
-
     @Autowired
     protected lateinit var mockMvc: MockMvc
 
@@ -43,18 +42,15 @@ abstract class AbstractTest {
                         .withRegEx(".*database system is ready to accept connections.*\\s")
                         .withTimes(2)
                         .withStartupTimeout(Duration.of(60, ChronoUnit.SECONDS)),
-                )
-                .withCommand("postgres", "-c", "fsync=off")
+                ).withCommand("postgres", "-c", "fsync=off")
                 .withEnv(
                     mapOf(
                         "POSTGRES_DB" to "test",
                         "POSTGRES_USER" to "test",
                         "POSTGRES_PASSWORD" to "test",
                     ),
-                )
-                .withNetworkAliases("postgres")
+                ).withNetworkAliases("postgres")
                 .apply { start() }
-
 
         @JvmStatic
         @DynamicPropertySource
@@ -69,29 +65,34 @@ abstract class AbstractTest {
 
     protected fun registerUser(
         email: String = "test-${UUID.randomUUID()}@test.com",
-        password: String = "123"
+        password: String = "123",
     ): String {
-        mockMvc.post("/users/register") {
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                UserRegistrationRequest(
-                    email = email,
-                    password = password
-                )
-            )
-        }.andExpect { status { isOk() } }
+        mockMvc
+            .post("/users/register") {
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    objectMapper.writeValueAsString(
+                        UserRegistrationRequest(
+                            email = email,
+                            password = password,
+                        ),
+                    )
+            }.andExpect { status { isOk() } }
 
-        val token = mockMvc.post("/users/login") {
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                UserLoginRequest(
-                    email = email,
-                    password = password
-                )
-            )
-        }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<JwtTokenResponse>(it) }
+        val token =
+            mockMvc
+                .post("/users/login") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        objectMapper.writeValueAsString(
+                            UserLoginRequest(
+                                email = email,
+                                password = password,
+                            ),
+                        )
+                }.andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<JwtTokenResponse>(it) }
 
         return token.token
     }

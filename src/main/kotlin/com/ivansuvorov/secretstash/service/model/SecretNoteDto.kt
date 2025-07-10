@@ -9,5 +9,5 @@ data class SecretNoteDto(
     val content: String,
     val status: SecretNoteStatus,
     val expiresAt: Instant?,
-    val createdAt: Instant
+    val createdAt: Instant,
 )

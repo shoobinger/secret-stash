@@ -15,29 +15,33 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/users")
 class UserController(
     private val userService: UserService,
-    private val rateLimiterService: RateLimiterService
+    private val rateLimiterService: RateLimiterService,
 ) {
     @PostMapping("/register")
-    fun register(@RequestBody request: UserRegistrationRequest) {
+    fun register(
+        @RequestBody request: UserRegistrationRequest,
+    ) {
         rateLimiterService.checkGlobal()
 
         userService.register(
             UserRegisterRequestDto(
                 email = request.email,
-                password = request.password
-            )
+                password = request.password,
+            ),
         )
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody request: UserLoginRequest): JwtTokenResponse {
+    fun login(
+        @RequestBody request: UserLoginRequest,
+    ): JwtTokenResponse {
         rateLimiterService.checkGlobal()
 
         return userService.login(
             UserLoginRequest(
                 email = request.email,
-                password = request.password
-            )
+                password = request.password,
+            ),
         )
     }
 }

@@ -8,5 +8,5 @@ import java.util.UUID
 data class UserDbModel(
     @Id val id: UUID?,
     val email: String,
-    val passwordHash: String
+    val passwordHash: String,
 )

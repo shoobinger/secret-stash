@@ -7,5 +7,5 @@ import java.time.Duration
 data class JwtProperties(
     val keyId: String,
     val issuer: String,
-    val tokenExpiration: Duration
+    val tokenExpiration: Duration,
 )

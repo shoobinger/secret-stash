@@ -25,9 +25,10 @@ class JacksonConfiguration {
             builder
                 .modules(
                     JavaTimeModule().apply {
-                        val dateTimeFormatter = DateTimeFormatterBuilder()
-                            .appendInstant(NUMBER_OF_FRACTIONAL_DIGITS)
-                            .toFormatter()
+                        val dateTimeFormatter =
+                            DateTimeFormatterBuilder()
+                                .appendInstant(NUMBER_OF_FRACTIONAL_DIGITS)
+                                .toFormatter()
 
                         addSerializer(
                             Instant::class.java,
@@ -35,13 +36,13 @@ class JacksonConfiguration {
                                 INSTANCE,
                                 false,
                                 false,
-                                dateTimeFormatter
-                            ) {})
+                                dateTimeFormatter,
+                            ) {},
+                        )
                     },
                     KotlinModule.Builder().build(),
-                    Jdk8Module()
-                )
-                .timeZone("UTC")
+                    Jdk8Module(),
+                ).timeZone("UTC")
         }
 
     @Bean

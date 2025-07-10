@@ -10,7 +10,6 @@ import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
 import com.ivansuvorov.secretstash.service.model.UserDto
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -29,44 +28,47 @@ import java.util.UUID
 @RequestMapping("/notes")
 class SecretNoteController(
     private val secretNoteService: SecretNoteService,
-    private val rateLimiterService: RateLimiterService
+    private val rateLimiterService: RateLimiterService,
 ) {
     @PostMapping
     fun createSecretNote(
         @RequestBody createRequest: SecretNoteCreateRequest,
-        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ): SecretNote {
         rateLimiterService.checkForUser(user.id)
 
-        val secretNote = secretNoteService.create(
-            caller = user,
-            request = SecretNoteCreateRequestDto(
-                title = createRequest.title,
-                content = createRequest.content,
-                expiresAt = createRequest.expiresAt
+        val secretNote =
+            secretNoteService.create(
+                caller = user,
+                request =
+                    SecretNoteCreateRequestDto(
+                        title = createRequest.title,
+                        content = createRequest.content,
+                        expiresAt = createRequest.expiresAt,
+                    ),
             )
-        )
         return secretNote.toApiModel()
     }
 
     @GetMapping("/{id}")
     fun getSecretNote(
         @PathVariable id: UUID,
-        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ): SecretNote? {
         rateLimiterService.checkForUser(user.id)
 
-        val secretNote = secretNoteService.findById(
-            caller = user,
-            noteId = id
-        )
+        val secretNote =
+            secretNoteService.findById(
+                caller = user,
+                noteId = id,
+            )
         return secretNote?.toApiModel()
     }
 
     @GetMapping
     fun getLatestSecretNotes(
         @RequestParam("count", required = false, defaultValue = "1000") count: Int,
-        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ): List<SecretNote> {
         rateLimiterService.checkForUser(user.id)
 
@@ -74,10 +76,11 @@ class SecretNoteController(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't retrieve more than 1000 notes")
         }
 
-        val secretNotes = secretNoteService.findLatest(
-            caller = user,
-            count = count
-        )
+        val secretNotes =
+            secretNoteService.findLatest(
+                caller = user,
+                count = count,
+            )
         return secretNotes.map { it.toApiModel() }
     }
 
@@ -85,42 +88,43 @@ class SecretNoteController(
     fun updateSecretNote(
         @PathVariable id: UUID,
         @RequestBody updateRequest: SecretNoteUpdateRequest,
-        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ): SecretNote {
         rateLimiterService.checkForUser(user.id)
 
-        val secretNote = secretNoteService.update(
-            caller = user,
-            noteId = id,
-            request = SecretNoteUpdateRequestDto(
-                title = updateRequest.title,
-                content = updateRequest.content,
-                expiresAt = updateRequest.expiresAt
+        val secretNote =
+            secretNoteService.update(
+                caller = user,
+                noteId = id,
+                request =
+                    SecretNoteUpdateRequestDto(
+                        title = updateRequest.title,
+                        content = updateRequest.content,
+                        expiresAt = updateRequest.expiresAt,
+                    ),
             )
-        )
         return secretNote.toApiModel()
     }
 
     @DeleteMapping("/{id}")
     fun deleteSecretNote(
         @PathVariable id: UUID,
-        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ) {
         rateLimiterService.checkForUser(user.id)
 
         secretNoteService.delete(
             caller = user,
-            noteId = id
+            noteId = id,
         )
     }
 
-    private fun SecretNoteDto.toApiModel(): SecretNote {
-        return SecretNote(
+    private fun SecretNoteDto.toApiModel(): SecretNote =
+        SecretNote(
             id = id,
             title = title,
             content = content,
             expiresAt = expiresAt,
-            createdAt = createdAt
+            createdAt = createdAt,
         )
-    }
 }

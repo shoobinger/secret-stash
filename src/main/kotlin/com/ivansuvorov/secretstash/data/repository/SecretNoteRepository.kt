@@ -8,11 +8,16 @@ import org.springframework.data.repository.CrudRepository
 import java.util.UUID
 
 interface SecretNoteRepository : CrudRepository<SecretNoteDbModel, UUID> {
-    fun findByIdAndOwnerIdAndStatus(id: UUID, ownerId: UUID, status: String): SecretNoteDbModel?
+    fun findByIdAndOwnerIdAndStatus(
+        id: UUID,
+        ownerId: UUID,
+        status: String,
+    ): SecretNoteDbModel?
+
     fun findByOwnerIdAndStatusOrderByCreatedAtDesc(
         ownerId: UUID,
         status: String,
-        pageable: Pageable
+        pageable: Pageable,
     ): List<SecretNoteDbModel>
 
     @Modifying

@@ -1,4 +1,4 @@
-package com.ivansuvorov.secretstash;
+package com.ivansuvorov.secretstash
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.ivansuvorov.secretstash.api.model.SecretNote
@@ -19,39 +19,43 @@ import java.time.Instant
 import java.util.UUID
 
 class SecretNoteApiTest : AbstractTest() {
-
     @Test
     fun `should be able to create a secret note`() {
         val userToken = registerUser()
 
-        val created = mockMvc.post("/notes") {
-            header("Authorization", "Bearer $userToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
-                )
-            )
-        }
-            .andExpect {
-                status { isOk() }
-            }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+        val created =
+            mockMvc
+                .post("/notes") {
+                    header("Authorization", "Bearer $userToken")
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        objectMapper.writeValueAsString(
+                            SecretNoteCreateRequest(
+                                title = "Test",
+                                content = "Test content",
+                                expiresAt = Instant.now().plusSeconds(60L),
+                            ),
+                        )
+                }.andExpect {
+                    status { isOk() }
+                }.andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<SecretNote>(it) }
 
         assertThat(created.title).isEqualTo("Test")
         assertThat(created.content).isEqualTo("Test content")
 
         val id = created.id
 
-        val foundByid = mockMvc.get("/notes/$id") {
-            header("Authorization", "Bearer $userToken")
-            accept = MediaType.APPLICATION_JSON
-        }.andExpect { status { isOk() } }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+        val foundByid =
+            mockMvc
+                .get("/notes/$id") {
+                    header("Authorization", "Bearer $userToken")
+                    accept = MediaType.APPLICATION_JSON
+                }.andExpect { status { isOk() } }
+                .andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<SecretNote>(it) }
 
         assertThat(foundByid.id).isEqualTo(id)
         assertThat(foundByid.title).isEqualTo("Test")
@@ -63,22 +67,24 @@ class SecretNoteApiTest : AbstractTest() {
         val userToken = registerUser()
         val id = createNote(userToken)
 
-        val updated = mockMvc.put("/notes/$id") {
-            header("Authorization", "Bearer $userToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteUpdateRequest(
-                    title = "Test (updated)",
-                    content = "Test content (updated)",
-                    expiresAt = Instant.now().plusSeconds(120L)
-                )
-            )
-        }
-            .andExpect {
-                status { isOk() }
-            }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+        val updated =
+            mockMvc
+                .put("/notes/$id") {
+                    header("Authorization", "Bearer $userToken")
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        objectMapper.writeValueAsString(
+                            SecretNoteUpdateRequest(
+                                title = "Test (updated)",
+                                content = "Test content (updated)",
+                                expiresAt = Instant.now().plusSeconds(120L),
+                            ),
+                        )
+                }.andExpect {
+                    status { isOk() }
+                }.andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<SecretNote>(it) }
 
         assertThat(updated.id).isEqualTo(id)
         assertThat(updated.title).isEqualTo("Test (updated)")
@@ -90,16 +96,18 @@ class SecretNoteApiTest : AbstractTest() {
         val userToken = registerUser()
         val id = createNote(userToken)
 
-        mockMvc.delete("/notes/$id") {
-            header("Authorization", "Bearer $userToken")
-        }.andExpect {
-            status { isOk() }
-        }
+        mockMvc
+            .delete("/notes/$id") {
+                header("Authorization", "Bearer $userToken")
+            }.andExpect {
+                status { isOk() }
+            }
 
-        mockMvc.get("/notes/$id") {
-            header("Authorization", "Bearer $userToken")
-            accept = MediaType.APPLICATION_JSON
-        }.andExpect { status { isNotFound() } }
+        mockMvc
+            .get("/notes/$id") {
+                header("Authorization", "Bearer $userToken")
+                accept = MediaType.APPLICATION_JSON
+            }.andExpect { status { isNotFound() } }
     }
 
     @Test
@@ -110,20 +118,22 @@ class SecretNoteApiTest : AbstractTest() {
 
         val count = 10
         // Create 10 more notes.
-        val notes = (1..count).map {
-            createNote(userToken)
-        }
+        val notes =
+            (1..count).map {
+                createNote(userToken)
+            }
 
         // Retrieve latest notes (should not include the first note)
-        val latestNotes = mockMvc.get("/notes?count=$count") {
-            header("Authorization", "Bearer $userToken")
-            accept = MediaType.APPLICATION_JSON
-        }
-            .andExpect {
-                status { isOk() }
-            }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<List<SecretNote>>(it) }
+        val latestNotes =
+            mockMvc
+                .get("/notes?count=$count") {
+                    header("Authorization", "Bearer $userToken")
+                    accept = MediaType.APPLICATION_JSON
+                }.andExpect {
+                    status { isOk() }
+                }.andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<List<SecretNote>>(it) }
 
         assertThat(latestNotes).hasSize(count)
         assertThat(latestNotes.map { it.id }).isEqualTo(notes.reversed()) // sorted by creation date
@@ -131,18 +141,19 @@ class SecretNoteApiTest : AbstractTest() {
 
     @Test
     fun `should not be able to create a note without a JWT token`() {
-        mockMvc.post("/notes") {
-            // Not including any authorization header.
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
-                )
-            )
-        }
-            .andExpect {
+        mockMvc
+            .post("/notes") {
+                // Not including any authorization header.
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    objectMapper.writeValueAsString(
+                        SecretNoteCreateRequest(
+                            title = "Test",
+                            content = "Test content",
+                            expiresAt = Instant.now().plusSeconds(60L),
+                        ),
+                    )
+            }.andExpect {
                 status { isUnauthorized() }
             }
     }
@@ -156,31 +167,33 @@ class SecretNoteApiTest : AbstractTest() {
         val id = createNote(firstUserToken)
 
         // Second user tries to access this note.
-        mockMvc.get("/notes/$id") {
-            header("Authorization", "Bearer $secondUserToken")
-            accept = MediaType.APPLICATION_JSON
-        }
-            .andExpect { status { isNotFound() } }
+        mockMvc
+            .get("/notes/$id") {
+                header("Authorization", "Bearer $secondUserToken")
+                accept = MediaType.APPLICATION_JSON
+            }.andExpect { status { isNotFound() } }
 
-        mockMvc.put("/notes/$id") {
-            header("Authorization", "Bearer $secondUserToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteUpdateRequest(
-                    title = "Test (updated)",
-                    content = "Test content (updated)",
-                )
-            )
-        }
-            .andExpect {
+        mockMvc
+            .put("/notes/$id") {
+                header("Authorization", "Bearer $secondUserToken")
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    objectMapper.writeValueAsString(
+                        SecretNoteUpdateRequest(
+                            title = "Test (updated)",
+                            content = "Test content (updated)",
+                        ),
+                    )
+            }.andExpect {
                 status { isNotFound() }
             }
 
-        mockMvc.delete("/notes/$id") {
-            header("Authorization", "Bearer $secondUserToken")
-        }.andExpect {
-            status { isNotFound() }
-        }
+        mockMvc
+            .delete("/notes/$id") {
+                header("Authorization", "Bearer $secondUserToken")
+            }.andExpect {
+                status { isNotFound() }
+            }
     }
 
     @Test
@@ -189,31 +202,39 @@ class SecretNoteApiTest : AbstractTest() {
         val shortLivedNoteId = createNote(userToken, expirationSeconds = 1L)
         val longLivedNoteId = createNote(userToken, expirationSeconds = 1000L)
         await atMost Duration.ofSeconds(5L) untilAsserted {
-            mockMvc.get("/notes/$shortLivedNoteId") {
-                header("Authorization", "Bearer $userToken")
-            }.andExpect { status { isNotFound() } } // Note should expire and disappear.
+            mockMvc
+                .get("/notes/$shortLivedNoteId") {
+                    header("Authorization", "Bearer $userToken")
+                }.andExpect { status { isNotFound() } } // Note should expire and disappear.
         }
 
-        mockMvc.get("/notes/$longLivedNoteId") {
-            header("Authorization", "Bearer $userToken")
-        }.andExpect { status { isOk() } }
+        mockMvc
+            .get("/notes/$longLivedNoteId") {
+                header("Authorization", "Bearer $userToken")
+            }.andExpect { status { isOk() } }
     }
 
-    private fun createNote(userToken: String, expirationSeconds: Long = 60): UUID {
-        val created = mockMvc.post("/notes") {
-            header("Authorization", "Bearer $userToken")
-            contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(expirationSeconds)
-                )
-            )
-        }
-            .andExpect { status { isOk() } }
-            .andReturn()
-            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+    private fun createNote(
+        userToken: String,
+        expirationSeconds: Long = 60,
+    ): UUID {
+        val created =
+            mockMvc
+                .post("/notes") {
+                    header("Authorization", "Bearer $userToken")
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        objectMapper.writeValueAsString(
+                            SecretNoteCreateRequest(
+                                title = "Test",
+                                content = "Test content",
+                                expiresAt = Instant.now().plusSeconds(expirationSeconds),
+                            ),
+                        )
+                }.andExpect { status { isOk() } }
+                .andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<SecretNote>(it) }
 
         return created.id
     }

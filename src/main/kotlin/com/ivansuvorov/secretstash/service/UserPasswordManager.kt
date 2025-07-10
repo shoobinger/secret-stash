@@ -12,14 +12,15 @@ class UserPasswordManager {
     private val bCryptHasher = BCrypt.withDefaults()
     private val bCryptVerifyer = BCrypt.verifyer()
 
-    fun hashPassword(password: String): String {
-        return bCryptHasher.hashToString(COST, password.toCharArray())
-    }
+    fun hashPassword(password: String): String = bCryptHasher.hashToString(COST, password.toCharArray())
 
-    fun verifyPassword(passwordToVerify: String, passwordHash: String): Boolean {
-        return bCryptVerifyer.verify(
-            passwordToVerify.toCharArray(),
-            passwordHash.toCharArray()
-        ).verified
-    }
+    fun verifyPassword(
+        passwordToVerify: String,
+        passwordHash: String,
+    ): Boolean =
+        bCryptVerifyer
+            .verify(
+                passwordToVerify.toCharArray(),
+                passwordHash.toCharArray(),
+            ).verified
 }

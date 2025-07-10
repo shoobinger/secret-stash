@@ -11,9 +11,8 @@ import java.util.UUID
 @Component
 class JwtAuthInterceptor(
     private val userService: UserService,
-    private val jwtManager: JwtManager
+    private val jwtManager: JwtManager,
 ) : HandlerInterceptor {
-
     companion object {
         const val USER_REQUEST_ATTRIBUTE = "user"
     }
@@ -22,7 +21,7 @@ class JwtAuthInterceptor(
     override fun preHandle(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        handler: Any
+        handler: Any,
     ): Boolean {
         val authHeader = request.getHeader("Authorization")
         if (authHeader == null) {

@@ -19,30 +19,33 @@ import java.time.Instant
 import java.util.Date
 import java.util.UUID
 
-
 @Component
 class JwtManager(
-    private val properties: JwtProperties
+    private val properties: JwtProperties,
 ) {
-    var jwk: OctetKeyPair = OctetKeyPairGenerator(Curve.Ed25519)
-        .keyID(properties.keyId)
-        .generate()
+    var jwk: OctetKeyPair =
+        OctetKeyPairGenerator(Curve.Ed25519)
+            .keyID(properties.keyId)
+            .generate()
 
     val publicJWK: OctetKeyPair = jwk.toPublicJWK()
     val signer: JWSSigner = Ed25519Signer(jwk)
     val verifier: JWSVerifier = Ed25519Verifier(publicJWK)
 
     fun buildToken(userId: UUID): String {
-        val claims = JWTClaimsSet.Builder()
-            .subject(userId.toString())
-            .issuer(properties.issuer)
-            .expirationTime(Date.from(Instant.now().plusSeconds(properties.tokenExpiration.seconds)))
-            .build()
+        val claims =
+            JWTClaimsSet
+                .Builder()
+                .subject(userId.toString())
+                .issuer(properties.issuer)
+                .expirationTime(Date.from(Instant.now().plusSeconds(properties.tokenExpiration.seconds)))
+                .build()
 
-        val jwt = SignedJWT(
-            JWSHeader.Builder(JWSAlgorithm.EdDSA).keyID(jwk.keyID).build(),
-            claims
-        )
+        val jwt =
+            SignedJWT(
+                JWSHeader.Builder(JWSAlgorithm.EdDSA).keyID(jwk.keyID).build(),
+                claims,
+            )
         jwt.sign(signer)
         return jwt.serialize()
     }

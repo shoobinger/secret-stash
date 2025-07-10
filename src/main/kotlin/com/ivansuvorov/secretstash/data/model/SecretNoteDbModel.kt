@@ -13,5 +13,5 @@ data class SecretNoteDbModel(
     val status: String,
     val ownerId: UUID,
     val expiresAt: Instant?,
-    val createdAt: Instant
+    val createdAt: Instant,
 )

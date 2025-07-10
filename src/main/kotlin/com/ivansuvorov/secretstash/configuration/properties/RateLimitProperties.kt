@@ -7,5 +7,5 @@ import java.time.Duration
 data class RateLimitProperties(
     val period: Duration,
     val userLimit: Int,
-    val globalLimit: Int
+    val globalLimit: Int,
 )

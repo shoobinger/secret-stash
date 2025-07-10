@@ -17,15 +17,14 @@ import java.util.UUID
 class UserService(
     private val userPasswordManager: UserPasswordManager,
     private val jwtManager: JwtManager,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
-
     @Transactional
     fun register(request: UserRegisterRequestDto) {
         if (userRepository.findByEmail(request.email) != null) {
             throw ResponseStatusException(
                 HttpStatus.UNPROCESSABLE_ENTITY,
-                "User with this email already exists"
+                "User with this email already exists",
             )
         }
 
@@ -35,8 +34,8 @@ class UserService(
             UserDbModel(
                 id = null,
                 email = request.email,
-                passwordHash = passwordHash
-            )
+                passwordHash = passwordHash,
+            ),
         )
     }
 
@@ -47,10 +46,11 @@ class UserService(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password")
         }
 
-        val passwordValid = userPasswordManager.verifyPassword(
-            passwordToVerify = request.password,
-            passwordHash = user.passwordHash
-        )
+        val passwordValid =
+            userPasswordManager.verifyPassword(
+                passwordToVerify = request.password,
+                passwordHash = user.passwordHash,
+            )
 
         if (!passwordValid) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password")
@@ -59,18 +59,15 @@ class UserService(
         val token = jwtManager.buildToken(checkNotNull(user.id))
 
         return JwtTokenResponse(
-            token = token
+            token = token,
         )
     }
 
-    fun getUserById(userId: UUID): UserDto? {
-        return userRepository.findByIdOrNull(userId)?.toDto()
-    }
+    fun getUserById(userId: UUID): UserDto? = userRepository.findByIdOrNull(userId)?.toDto()
 
-    private fun UserDbModel.toDto(): UserDto {
-        return UserDto(
+    private fun UserDbModel.toDto(): UserDto =
+        UserDto(
             id = checkNotNull(id),
-            email = email
+            email = email,
         )
-    }
 }

@@ -7,6 +7,7 @@ plugins {
     kotlin("plugin.spring") version "2.2.0"
     kotlin("plugin.jpa") version "2.2.0"
     id("org.openapi.generator") version "7.14.0"
+    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
 }
 
 group = "me.ivansuvorov"
@@ -60,18 +61,18 @@ openApiGenerate {
     modelPackage = "com.ivansuvorov.secretstash.api.model"
     configOptions.set(
         mapOf(
-            "serializationLibrary" to "jackson"
-        )
+            "serializationLibrary" to "jackson",
+        ),
     )
     typeMappings.set(
         mapOf(
             "DateTime" to "Instant",
-        )
+        ),
     )
     importMappings.set(
         mapOf(
-            "Instant" to "java.time.Instant"
-        )
+            "Instant" to "java.time.Instant",
+        ),
     )
     globalProperties.set(
         mapOf(
@@ -80,8 +81,8 @@ openApiGenerate {
             "modelTests" to "false",
             "apis" to "false",
             "apiDocs" to "false",
-            "apiTests" to "false"
-        )
+            "apiTests" to "false",
+        ),
     )
 }
 
