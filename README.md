@@ -11,9 +11,11 @@
    docker compose up
    ```
 3. The application should be available at `http://localhost:8080`
-4. To access API, use `http://localhost:8080/swagger-ui` specifying `/openapi.yaml` in the top bar.
+4. To access the API, open `http://localhost:8080/swagger-ui`. The default Swagger UI will show up. Specify
+   `/openapi.yaml` in the top search bar of the Swagger UI interface.
 
 # Authenticating requests
+
 `/notes` API is secured using JWT authentication. Register a user using `/users/register` and then get a JWT
 with `/users/login`. The token must be put to `Authorization` header in all subsequent requests.
 
