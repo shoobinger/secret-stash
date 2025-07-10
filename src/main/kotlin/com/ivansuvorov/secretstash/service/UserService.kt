@@ -6,6 +6,7 @@ import com.ivansuvorov.secretstash.data.model.UserDbModel
 import com.ivansuvorov.secretstash.data.repository.UserRepository
 import com.ivansuvorov.secretstash.service.model.UserDto
 import com.ivansuvorov.secretstash.service.model.UserRegisterRequestDto
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -19,6 +20,8 @@ class UserService(
     private val jwtManager: JwtManager,
     private val userRepository: UserRepository,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Transactional
     fun register(request: UserRegisterRequestDto) {
         if (userRepository.findByEmail(request.email) != null) {
@@ -27,16 +30,16 @@ class UserService(
                 "User with this email already exists",
             )
         }
-
+        logger.info("Registering a new user")
         val passwordHash = userPasswordManager.hashPassword(request.password)
-
-        userRepository.save(
+        val user = userRepository.save(
             UserDbModel(
                 id = null,
                 email = request.email,
                 passwordHash = passwordHash,
             ),
         )
+        logger.info("A new user with ID ${user.id} was successfully registered")
     }
 
     @Transactional
@@ -51,13 +54,10 @@ class UserService(
                 passwordToVerify = request.password,
                 passwordHash = user.passwordHash,
             )
-
         if (!passwordValid) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password")
         }
-
         val token = jwtManager.buildToken(checkNotNull(user.id))
-
         return JwtTokenResponse(
             token = token,
         )

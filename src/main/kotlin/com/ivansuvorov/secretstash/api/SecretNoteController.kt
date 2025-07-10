@@ -10,6 +10,7 @@ import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
 import com.ivansuvorov.secretstash.service.model.UserDto
+import org.slf4j.MDC
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -37,6 +38,9 @@ class SecretNoteController(
     ): SecretNote {
         rateLimiterService.checkForUser(user.id)
 
+        MDC.put("requestId", UUID.randomUUID().toString())
+        MDC.put("userId", user.id.toString())
+
         val secretNote =
             secretNoteService.create(
                 caller = user,
@@ -57,6 +61,10 @@ class SecretNoteController(
     ): SecretNote? {
         rateLimiterService.checkForUser(user.id)
 
+        MDC.put("requestId", UUID.randomUUID().toString())
+        MDC.put("userId", user.id.toString())
+        MDC.put("secretNoteId", id.toString())
+
         val secretNote =
             secretNoteService.findById(
                 caller = user,
@@ -71,6 +79,9 @@ class SecretNoteController(
         @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ): List<SecretNote> {
         rateLimiterService.checkForUser(user.id)
+
+        MDC.put("requestId", UUID.randomUUID().toString())
+        MDC.put("userId", user.id.toString())
 
         if (count > 1000) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't retrieve more than 1000 notes")
@@ -92,6 +103,10 @@ class SecretNoteController(
     ): SecretNote {
         rateLimiterService.checkForUser(user.id)
 
+        MDC.put("requestId", UUID.randomUUID().toString())
+        MDC.put("userId", user.id.toString())
+        MDC.put("secretNoteId", id.toString())
+
         val secretNote =
             secretNoteService.update(
                 caller = user,
@@ -112,6 +127,10 @@ class SecretNoteController(
         @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
     ) {
         rateLimiterService.checkForUser(user.id)
+
+        MDC.put("requestId", UUID.randomUUID().toString())
+        MDC.put("userId", user.id.toString())
+        MDC.put("secretNoteId", id.toString())
 
         secretNoteService.delete(
             caller = user,

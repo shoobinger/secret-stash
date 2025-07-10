@@ -1,8 +1,8 @@
 create table users
 (
-    id          uuid not null primary key default gen_random_uuid(),
-    email       text not null unique,
-    password_hash text not null
+    id              uuid not null primary key default gen_random_uuid(),
+    email           text not null unique,
+    password_hash   text not null
 );
 
 create table secret_note
@@ -11,8 +11,8 @@ create table secret_note
     title       text not null,
     content     text not null,
     owner_id    uuid not null references users(id),
-    status      text not null,
+    status      varchar(32) not null,
 
-    created_at timestamp with time zone not null,
-    expires_at timestamp with time zone
+    created_at  timestamp with time zone not null,
+    expires_at  timestamp with time zone
 );

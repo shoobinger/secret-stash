@@ -12,8 +12,22 @@ class UserPasswordManager {
     private val bCryptHasher = BCrypt.withDefaults()
     private val bCryptVerifyer = BCrypt.verifyer()
 
-    fun hashPassword(password: String): String = bCryptHasher.hashToString(COST, password.toCharArray())
+    /**
+     * Creates a secure hash from the given user-supplied password. This hash can then be persisted.
+     *
+     * @param password Password from user request.
+     * @return Password hash.
+     */
+    fun hashPassword(password: String): String =
+        bCryptHasher.hashToString(COST, password.toCharArray())
 
+    /**
+     * Verifies the given password, comparing it to the given password hash.
+     *
+     * @param passwordToVerify Password to verify.
+     * @param passwordHash Password hash.
+     * @return true if the password is valid, false otherwise.
+     */
     fun verifyPassword(
         passwordToVerify: String,
         passwordHash: String,

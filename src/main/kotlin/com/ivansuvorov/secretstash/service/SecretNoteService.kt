@@ -24,12 +24,21 @@ class SecretNoteService(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(SecretNoteService::class.java)
 
+    companion object {
+        const val MAX_TITLE_LENGTH = 100
+        const val MAX_CONTENT_LENGTH = 5000
+    }
+
     @Transactional
     fun create(
         caller: UserDto,
         request: SecretNoteCreateRequestDto,
     ): SecretNoteDto {
         logger.info("Creating a new secret note")
+
+        validateTitle(request.title)
+        validateContent(request.content)
+        validateExpirationDate(request.expiresAt)
 
         val secretNoteDbModel =
             secretNoteRepository.save(
@@ -53,7 +62,7 @@ class SecretNoteService(
         noteId: UUID,
         request: SecretNoteUpdateRequestDto,
     ): SecretNoteDto {
-        logger.info("Updating secret note with id $noteId")
+        logger.info("Updating secret note")
 
         val secretNote =
             secretNoteRepository.findByIdAndOwnerIdAndStatus(
@@ -61,6 +70,10 @@ class SecretNoteService(
                 ownerId = caller.id,
                 status = SecretNoteStatus.ACTIVE.name,
             ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+
+        validateTitle(request.title)
+        validateContent(request.content)
+        validateExpirationDate(request.expiresAt)
 
         val secretNoteDbModel =
             secretNoteRepository.save(
@@ -82,6 +95,8 @@ class SecretNoteService(
         caller: UserDto,
         noteId: UUID,
     ) {
+        logger.info("Deleting secret note")
+
         val secretNote =
             secretNoteRepository.findByIdAndOwnerIdAndStatus(
                 id = noteId,
@@ -107,6 +122,8 @@ class SecretNoteService(
         caller: UserDto,
         noteId: UUID,
     ): SecretNoteDto? {
+        logger.debug("Getting secret note by ID")
+
         val secretNote =
             secretNoteRepository.findByIdAndOwnerIdAndStatus(
                 id = noteId,
@@ -122,6 +139,8 @@ class SecretNoteService(
         caller: UserDto,
         count: Int,
     ): List<SecretNoteDto> {
+        logger.debug("Finding latest secret notes, count {}", count)
+
         val pageRequest = PageRequest.of(0, count)
         return secretNoteRepository
             .findByOwnerIdAndStatusOrderByCreatedAtDesc(
@@ -134,7 +153,26 @@ class SecretNoteService(
     @Scheduled(fixedRate = 1000)
     @Transactional
     fun handleExpiredNotes() {
+        logger.trace("Performing scheduled job to update expired notes statuses")
         secretNoteRepository.updateExpiredStatus()
+    }
+
+    private fun validateTitle(title: String) {
+        require(title.length <= MAX_TITLE_LENGTH) {
+            "The length of the title must be less than $MAX_TITLE_LENGTH"
+        }
+    }
+
+    private fun validateContent(content: String) {
+        require(content.length <= MAX_CONTENT_LENGTH) {
+            "The length of the content must be less than $MAX_CONTENT_LENGTH"
+        }
+    }
+
+    private fun validateExpirationDate(expiresAt: Instant?) {
+        require(expiresAt == null || expiresAt.isAfter(Instant.now())) {
+            "Expiration date must be in the future"
+        }
     }
 
     private fun SecretNoteDbModel.toDto(): SecretNoteDto =

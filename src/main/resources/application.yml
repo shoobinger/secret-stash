@@ -14,3 +14,8 @@ ratelimit:
   period: 1s
   user-limit: 60
   global-limit: 1000
+
+
+logging:
+  level:
+    com.ivansuvorov: DEBUG
