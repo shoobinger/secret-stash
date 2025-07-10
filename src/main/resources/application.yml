@@ -4,5 +4,12 @@ spring:
   threads.virtual.enabled: true
 
 jwt:
+  # A random key ID to sign JWT. Can be rotated by changing this property.
+  key-id: 3187aa78-0072-4c54-b87c-34687c573167
   issuer: https://secret-stash
   token-expiration: 1h
+
+ratelimit:
+  period: 1s
+  user-limit: 60
+  global-limit: 1000

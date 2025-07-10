@@ -11,3 +11,4 @@
 - using spring security
 - 404 as return code
 - pagination for `latest` endpoint
+- removing stale rate limiters

@@ -23,7 +23,7 @@ class JwtManager(
     private val properties: JwtProperties
 ) {
     var jwk: OctetKeyPair = OctetKeyPairGenerator(Curve.Ed25519)
-        .keyID("123")
+        .keyID(properties.keyId)
         .generate()
 
     val publicJWK: OctetKeyPair = jwk.toPublicJWK()
@@ -51,6 +51,10 @@ class JwtManager(
 
         val claims = jwt.jwtClaimsSet
         if (claims.issuer != properties.issuer) {
+            TODO()
+        }
+
+        if (claims.expirationTime.before(Date())) {
             TODO()
         }
 

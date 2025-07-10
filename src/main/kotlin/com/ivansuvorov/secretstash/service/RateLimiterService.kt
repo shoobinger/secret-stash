@@ -1,0 +1,48 @@
+package com.ivansuvorov.secretstash.service
+
+import com.ivansuvorov.secretstash.configuration.properties.RateLimitProperties
+import com.ivansuvorov.secretstash.error.RateLimitException
+import io.github.resilience4j.ratelimiter.RateLimiter
+import io.github.resilience4j.ratelimiter.RateLimiterConfig
+import org.springframework.stereotype.Service
+import java.time.Duration
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+
+@Service
+class RateLimiterService(
+    rateLimitProperties: RateLimitProperties
+) {
+    private val globalLimiter = RateLimiter.of(
+        "global", RateLimiterConfig.custom()
+            .limitForPeriod(rateLimitProperties.globalLimit)
+            .limitRefreshPeriod(rateLimitProperties.period)
+            .timeoutDuration(Duration.ofMillis(0))
+            .build()
+    )
+
+    private val userConfig: RateLimiterConfig = RateLimiterConfig.custom()
+        .limitForPeriod(rateLimitProperties.userLimit)
+        .limitRefreshPeriod(rateLimitProperties.period)
+        .timeoutDuration(Duration.ofMillis(0))
+        .build()
+
+    private val userLimiters: ConcurrentMap<String, RateLimiter> = ConcurrentHashMap()
+
+    fun checkGlobal() {
+        if (!globalLimiter.acquirePermission()) {
+            throw RateLimitException()
+        }
+    }
+
+    fun checkForUser(userId: UUID) {
+        val rateLimiter = userLimiters.computeIfAbsent(userId.toString()) { id ->
+            RateLimiter.of("user-$id", userConfig)
+        }
+
+        if (!rateLimiter.acquirePermission()) {
+            throw RateLimitException()
+        }
+    }
+}

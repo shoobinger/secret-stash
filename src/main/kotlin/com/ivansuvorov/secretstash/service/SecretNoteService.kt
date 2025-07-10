@@ -19,7 +19,7 @@ import java.util.UUID
 
 @Service
 class SecretNoteService(
-    private val secretNoteRepository: SecretNoteRepository
+    private val secretNoteRepository: SecretNoteRepository,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(SecretNoteService::class.java)
 

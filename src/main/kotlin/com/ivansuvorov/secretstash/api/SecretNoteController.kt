@@ -3,6 +3,7 @@ package com.ivansuvorov.secretstash.api
 import com.ivansuvorov.secretstash.api.model.SecretNote
 import com.ivansuvorov.secretstash.api.model.SecretNoteCreateRequest
 import com.ivansuvorov.secretstash.api.model.SecretNoteUpdateRequest
+import com.ivansuvorov.secretstash.service.RateLimiterService
 import com.ivansuvorov.secretstash.service.SecretNoteService
 import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteDto
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -25,16 +27,18 @@ import java.util.UUID
 @RestController
 @RequestMapping("/notes")
 class SecretNoteController(
-    private val secretNoteService: SecretNoteService
+    private val secretNoteService: SecretNoteService,
+    private val rateLimiterService: RateLimiterService
 ) {
-
     @PostMapping
     fun createSecretNote(
         @RequestBody createRequest: SecretNoteCreateRequest,
-        httpRequest: HttpServletRequest
+        @RequestAttribute("user") user: UserDto
     ): SecretNote {
+        rateLimiterService.checkForUser(user.id)
+
         val secretNote = secretNoteService.create(
-            caller = httpRequest.getAttribute("user") as UserDto,
+            caller = user,
             request = SecretNoteCreateRequestDto(
                 title = createRequest.title,
                 content = createRequest.content,
@@ -47,10 +51,12 @@ class SecretNoteController(
     @GetMapping("/{id}")
     fun getSecretNote(
         @PathVariable id: UUID,
-        httpRequest: HttpServletRequest
+        @RequestAttribute("user") user: UserDto
     ): SecretNote? {
+        rateLimiterService.checkForUser(user.id)
+
         val secretNote = secretNoteService.findById(
-            caller = httpRequest.getAttribute("user") as UserDto,
+            caller = user,
             noteId = id
         )
         return secretNote?.toApiModel()
@@ -59,14 +65,16 @@ class SecretNoteController(
     @GetMapping
     fun getLatestSecretNotes(
         @RequestParam("count", required = false, defaultValue = "1000") count: Int,
-        httpRequest: HttpServletRequest
+        @RequestAttribute("user") user: UserDto
     ): List<SecretNote> {
+        rateLimiterService.checkForUser(user.id)
+
         if (count > 1000) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Can't retrieve more than 1000 notes")
         }
 
         val secretNotes = secretNoteService.findLatest(
-            caller = httpRequest.getAttribute("user") as UserDto,
+            caller = user,
             count = count
         )
         return secretNotes.map { it.toApiModel() }
@@ -76,10 +84,12 @@ class SecretNoteController(
     fun updateSecretNote(
         @PathVariable id: UUID,
         @RequestBody updateRequest: SecretNoteUpdateRequest,
-        httpRequest: HttpServletRequest
+        @RequestAttribute("user") user: UserDto
     ): SecretNote {
+        rateLimiterService.checkForUser(user.id)
+
         val secretNote = secretNoteService.update(
-            caller = httpRequest.getAttribute("user") as UserDto,
+            caller = user,
             noteId = id,
             request = SecretNoteUpdateRequestDto(
                 title = updateRequest.title,
@@ -91,9 +101,11 @@ class SecretNoteController(
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSecretNote(@PathVariable id: UUID, httpRequest: HttpServletRequest) {
+    fun deleteSecretNote(@PathVariable id: UUID, @RequestAttribute("user") user: UserDto) {
+        rateLimiterService.checkForUser(user.id)
+
         secretNoteService.delete(
-            caller = httpRequest.getAttribute("user") as UserDto,
+            caller = user,
             noteId = id
         )
     }

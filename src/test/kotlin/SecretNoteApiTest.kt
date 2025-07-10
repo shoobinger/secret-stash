@@ -122,7 +122,7 @@ class SecretNoteApiTest : AbstractTest() {
             .response.contentAsString.let { objectMapper.readValue<List<SecretNote>>(it) }
 
         assertThat(latestNotes).hasSize(count)
-        assertThat(latestNotes.map { it.id }).isEqualTo(notes.reversed())
+        assertThat(latestNotes.map { it.id }).isEqualTo(notes.reversed()) // sorted by creation date
     }
 
     @Test

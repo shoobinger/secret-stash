@@ -29,6 +29,8 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:10.2")
     implementation("com.google.crypto.tink:tink:1.7.0") // For Ed25519.
 
+    implementation("io.github.resilience4j:resilience4j-ratelimiter:2.2.0")
+
     testImplementation(kotlin("test"))
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
