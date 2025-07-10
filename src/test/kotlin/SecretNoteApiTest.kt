@@ -37,7 +37,7 @@ class SecretNoteApiTest : AbstractTest() {
                             ),
                         )
                 }.andExpect {
-                    status { isOk() }
+                    status { isCreated() }
                 }.andReturn()
                 .response.contentAsString
                 .let { objectMapper.readValue<SecretNote>(it) }
@@ -231,7 +231,7 @@ class SecretNoteApiTest : AbstractTest() {
                                 expiresAt = Instant.now().plusSeconds(expirationSeconds),
                             ),
                         )
-                }.andExpect { status { isOk() } }
+                }.andExpect { status { isCreated() } }
                 .andReturn()
                 .response.contentAsString
                 .let { objectMapper.readValue<SecretNote>(it) }

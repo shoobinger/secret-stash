@@ -20,30 +20,29 @@ class JacksonConfiguration {
     }
 
     @Bean
-    fun customJacksonObjectMapperBuilder(): Jackson2ObjectMapperBuilderCustomizer =
-        Jackson2ObjectMapperBuilderCustomizer { builder ->
-            builder
-                .modules(
-                    JavaTimeModule().apply {
-                        val dateTimeFormatter =
-                            DateTimeFormatterBuilder()
-                                .appendInstant(NUMBER_OF_FRACTIONAL_DIGITS)
-                                .toFormatter()
+    fun customJacksonObjectMapperBuilder(): Jackson2ObjectMapperBuilderCustomizer = Jackson2ObjectMapperBuilderCustomizer { builder ->
+        builder
+            .modules(
+                JavaTimeModule().apply {
+                    val dateTimeFormatter =
+                        DateTimeFormatterBuilder()
+                            .appendInstant(NUMBER_OF_FRACTIONAL_DIGITS)
+                            .toFormatter()
 
-                        addSerializer(
-                            Instant::class.java,
-                            object : InstantSerializer(
-                                INSTANCE,
-                                false,
-                                false,
-                                dateTimeFormatter,
-                            ) {},
-                        )
-                    },
-                    KotlinModule.Builder().build(),
-                    Jdk8Module(),
-                ).timeZone("UTC")
-        }
+                    addSerializer(
+                        Instant::class.java,
+                        object : InstantSerializer(
+                            INSTANCE,
+                            false,
+                            false,
+                            dateTimeFormatter,
+                        ) {},
+                    )
+                },
+                KotlinModule.Builder().build(),
+                Jdk8Module(),
+            ).timeZone("UTC")
+    }
 
     @Bean
     @Primary

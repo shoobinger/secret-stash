@@ -7,7 +7,6 @@ plugins {
     kotlin("plugin.spring") version "2.2.0"
     kotlin("plugin.jpa") version "2.2.0"
     id("org.openapi.generator") version "7.14.0"
-    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
 }
 
 group = "me.ivansuvorov"

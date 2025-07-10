@@ -65,9 +65,8 @@ class UserService(
 
     fun getUserById(userId: UUID): UserDto? = userRepository.findByIdOrNull(userId)?.toDto()
 
-    private fun UserDbModel.toDto(): UserDto =
-        UserDto(
-            id = checkNotNull(id),
-            email = email,
-        )
+    private fun UserDbModel.toDto(): UserDto = UserDto(
+        id = checkNotNull(id),
+        email = email,
+    )
 }

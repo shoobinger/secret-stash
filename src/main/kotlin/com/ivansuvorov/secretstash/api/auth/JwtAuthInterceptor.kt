@@ -23,6 +23,7 @@ class JwtAuthInterceptor(
     companion object {
         const val USER_REQUEST_ATTRIBUTE = "user"
     }
+
     private val logger: Logger = LoggerFactory.getLogger(JwtAuthInterceptor::class.java)
 
     override fun preHandle(

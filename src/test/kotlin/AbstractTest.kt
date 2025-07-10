@@ -77,7 +77,7 @@ abstract class AbstractTest {
                             password = password,
                         ),
                     )
-            }.andExpect { status { isOk() } }
+            }.andExpect { status { isCreated() } }
 
         val token =
             mockMvc

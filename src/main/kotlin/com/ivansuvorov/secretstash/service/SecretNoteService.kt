@@ -175,13 +175,12 @@ class SecretNoteService(
         }
     }
 
-    private fun SecretNoteDbModel.toDto(): SecretNoteDto =
-        SecretNoteDto(
-            id = checkNotNull(id),
-            title = title,
-            content = content,
-            status = SecretNoteStatus.valueOf(status),
-            expiresAt = expiresAt,
-            createdAt = createdAt,
-        )
+    private fun SecretNoteDbModel.toDto(): SecretNoteDto = SecretNoteDto(
+        id = checkNotNull(id),
+        title = title,
+        content = content,
+        status = SecretNoteStatus.valueOf(status),
+        expiresAt = expiresAt,
+        createdAt = createdAt,
+    )
 }

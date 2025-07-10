@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
@@ -32,6 +33,7 @@ class SecretNoteController(
     private val rateLimiterService: RateLimiterService,
 ) {
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun createSecretNote(
         @RequestBody createRequest: SecretNoteCreateRequest,
         @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
@@ -44,12 +46,11 @@ class SecretNoteController(
         val secretNote =
             secretNoteService.create(
                 caller = user,
-                request =
-                    SecretNoteCreateRequestDto(
-                        title = createRequest.title,
-                        content = createRequest.content,
-                        expiresAt = createRequest.expiresAt,
-                    ),
+                request = SecretNoteCreateRequestDto(
+                    title = createRequest.title,
+                    content = createRequest.content,
+                    expiresAt = createRequest.expiresAt,
+                ),
             )
         return secretNote.toApiModel()
     }
@@ -112,11 +113,11 @@ class SecretNoteController(
                 caller = user,
                 noteId = id,
                 request =
-                    SecretNoteUpdateRequestDto(
-                        title = updateRequest.title,
-                        content = updateRequest.content,
-                        expiresAt = updateRequest.expiresAt,
-                    ),
+                SecretNoteUpdateRequestDto(
+                    title = updateRequest.title,
+                    content = updateRequest.content,
+                    expiresAt = updateRequest.expiresAt,
+                ),
             )
         return secretNote.toApiModel()
     }
@@ -138,12 +139,11 @@ class SecretNoteController(
         )
     }
 
-    private fun SecretNoteDto.toApiModel(): SecretNote =
-        SecretNote(
-            id = id,
-            title = title,
-            content = content,
-            expiresAt = expiresAt,
-            createdAt = createdAt,
-        )
+    private fun SecretNoteDto.toApiModel(): SecretNote = SecretNote(
+        id = id,
+        title = title,
+        content = content,
+        expiresAt = expiresAt,
+        createdAt = createdAt,
+    )
 }

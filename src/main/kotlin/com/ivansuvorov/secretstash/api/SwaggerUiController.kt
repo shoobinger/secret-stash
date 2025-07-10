@@ -5,9 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
 class SwaggerUiController {
-
     @GetMapping("/swagger-ui")
-    fun swaggerUi(): String {
-        return "redirect:/webjars/swagger-ui/index.html?url=/openapi.yaml"
-    }
+    fun swaggerUi(): String = "redirect:/webjars/swagger-ui/index.html?url=/openapi.yaml"
 }

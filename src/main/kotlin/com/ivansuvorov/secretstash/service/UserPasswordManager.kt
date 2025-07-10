@@ -18,8 +18,7 @@ class UserPasswordManager {
      * @param password Password from user request.
      * @return Password hash.
      */
-    fun hashPassword(password: String): String =
-        bCryptHasher.hashToString(COST, password.toCharArray())
+    fun hashPassword(password: String): String = bCryptHasher.hashToString(COST, password.toCharArray())
 
     /**
      * Verifies the given password, comparing it to the given password hash.
@@ -31,10 +30,9 @@ class UserPasswordManager {
     fun verifyPassword(
         passwordToVerify: String,
         passwordHash: String,
-    ): Boolean =
-        bCryptVerifyer
-            .verify(
-                passwordToVerify.toCharArray(),
-                passwordHash.toCharArray(),
-            ).verified
+    ): Boolean = bCryptVerifyer
+        .verify(
+            passwordToVerify.toCharArray(),
+            passwordHash.toCharArray(),
+        ).verified
 }

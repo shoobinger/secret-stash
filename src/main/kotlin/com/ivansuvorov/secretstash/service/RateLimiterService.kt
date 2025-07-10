@@ -57,10 +57,9 @@ class RateLimiterService(
      * @param userId User ID.
      */
     fun checkForUser(userId: UUID) {
-        val rateLimiter =
-            userLimiters.computeIfAbsent(userId.toString()) { id ->
-                RateLimiter.of("user-$id", userConfig)
-            }
+        val rateLimiter = userLimiters.computeIfAbsent(userId.toString()) { id ->
+            RateLimiter.of("user-$id", userConfig)
+        }
 
         if (!rateLimiter.acquirePermission()) {
             throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS)

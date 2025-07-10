@@ -23,7 +23,7 @@ class UserApiTest : AbstractTest() {
                             password = "123456",
                         ),
                     )
-            }.andExpect { status { isOk() } }
+            }.andExpect { status { isCreated() } }
 
         mockMvc
             .post("/users/login") {
@@ -53,7 +53,7 @@ class UserApiTest : AbstractTest() {
                             password = "123456",
                         ),
                     )
-            }.andExpect { status { isOk() } }
+            }.andExpect { status { isCreated() } }
 
         mockMvc
             .post("/users/login") {
