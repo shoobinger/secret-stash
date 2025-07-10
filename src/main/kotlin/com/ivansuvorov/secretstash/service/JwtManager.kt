@@ -15,6 +15,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.Date
+import java.util.UUID
 
 
 @Component
@@ -29,9 +30,9 @@ class JwtManager(
     val signer: JWSSigner = Ed25519Signer(jwk)
     val verifier: JWSVerifier = Ed25519Verifier(publicJWK)
 
-    fun buildToken(email: String): String {
+    fun buildToken(userId: UUID): String {
         val claims = JWTClaimsSet.Builder()
-            .subject(email)
+            .subject(userId.toString())
             .issuer(properties.issuer)
             .expirationTime(Date.from(Instant.now().plusSeconds(properties.tokenExpiration.seconds)))
             .build()

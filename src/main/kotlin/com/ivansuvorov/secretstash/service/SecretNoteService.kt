@@ -8,7 +8,6 @@ import com.ivansuvorov.secretstash.service.model.SecretNoteStatus
 import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -37,7 +36,7 @@ class SecretNoteService(
                 createdAt = Instant.now()
             )
         )
-        return secretNoteDbModel.toModel()
+        return secretNoteDbModel.toDto()
     }
 
     @Transactional
@@ -60,7 +59,7 @@ class SecretNoteService(
                 createdAt = secretNote.createdAt
             )
         )
-        return secretNoteDbModel.toModel()
+        return secretNoteDbModel.toDto()
     }
 
     @Transactional
@@ -89,10 +88,10 @@ class SecretNoteService(
         if (secretNote == null) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
-        return secretNote.toModel()
+        return secretNote.toDto()
     }
 
-    fun SecretNoteDbModel.toModel(): SecretNoteDto {
+    fun SecretNoteDbModel.toDto(): SecretNoteDto {
         return SecretNoteDto(
             id = checkNotNull(id),
             title = title,

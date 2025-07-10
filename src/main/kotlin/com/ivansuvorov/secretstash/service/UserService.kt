@@ -4,11 +4,14 @@ import com.ivansuvorov.secretstash.api.model.JwtTokenResponse
 import com.ivansuvorov.secretstash.api.model.UserLoginRequest
 import com.ivansuvorov.secretstash.data.model.UserDbModel
 import com.ivansuvorov.secretstash.data.repository.UserRepository
+import com.ivansuvorov.secretstash.service.model.UserDto
 import com.ivansuvorov.secretstash.service.model.UserRegisterRequestDto
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @Service
 class UserService(
@@ -41,7 +44,7 @@ class UserService(
     fun login(request: UserLoginRequest): JwtTokenResponse {
         val user = userRepository.findByEmail(request.email)
         if (user == null) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid username or password")
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password")
         }
 
         val passwordValid = userPasswordManager.verifyPassword(
@@ -53,10 +56,21 @@ class UserService(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password")
         }
 
-        val token = jwtManager.buildToken(user.email)
+        val token = jwtManager.buildToken(checkNotNull(user.id))
 
         return JwtTokenResponse(
             token = token
+        )
+    }
+
+    fun getUserById(userId: UUID): UserDto? {
+        return userRepository.findByIdOrNull(userId)?.toDto()
+    }
+
+    private fun UserDbModel.toDto(): UserDto {
+        return UserDto(
+            id = checkNotNull(id),
+            email = email
         )
     }
 }

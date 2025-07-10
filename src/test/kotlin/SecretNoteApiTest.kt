@@ -16,6 +16,24 @@ import java.time.Instant
 class SecretNoteApiTest : AbstractTest() {
 
     @Test
+    fun `should not be able to call notes API without JWT token`() {
+        // Try to create a secure note without providing a token.
+        mockMvc.post("/notes") {
+            this.contentType = MediaType.APPLICATION_JSON
+            this.content = objectMapper.writeValueAsString(
+                SecretNoteCreateRequest(
+                    title = "Test",
+                    content = "Test content",
+                    expiresAt = Instant.now().plusSeconds(60L)
+                )
+            )
+        }
+            .andExpect {
+                status { isUnauthorized() }
+            }
+    }
+
+    @Test
     fun `should be able to create a secret note`() {
         val created = mockMvc.post("/notes") {
             this.contentType = MediaType.APPLICATION_JSON

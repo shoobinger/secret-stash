@@ -14,7 +14,7 @@ import java.time.Instant
 import java.time.format.DateTimeFormatterBuilder
 
 @Configuration
-class JacksonConfig {
+class JacksonConfiguration {
     companion object {
         const val NUMBER_OF_FRACTIONAL_DIGITS = 3
     }
