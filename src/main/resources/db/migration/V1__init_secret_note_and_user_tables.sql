@@ -14,5 +14,5 @@ create table secret_note
     status      text not null,
 
     created_at timestamp with time zone not null,
-    expires_at timestamp with time zone not null
+    expires_at timestamp with time zone
 );

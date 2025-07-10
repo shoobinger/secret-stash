@@ -4,7 +4,9 @@ import com.ivansuvorov.secretstash.service.JwtManager
 import com.ivansuvorov.secretstash.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.HandlerInterceptor
 import java.util.UUID
 
@@ -17,7 +19,6 @@ class JwtAuthInterceptor(
         const val USER_REQUEST_ATTRIBUTE = "user"
     }
 
-    @Throws(Exception::class)
     override fun preHandle(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -25,19 +26,15 @@ class JwtAuthInterceptor(
     ): Boolean {
         val authHeader = request.getHeader("Authorization")
         if (authHeader == null) {
-            response.status = HttpServletResponse.SC_UNAUTHORIZED
-            response.writer.write("Missing or invalid Authorization header.")
-            return false
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid authorization header")
         }
 
         val token = authHeader.removePrefix("Bearer ")
-        val userId = jwtManager.verifyToken(token) // TODO handle error
+        val userId = jwtManager.verifyToken(token)
 
         val user = userService.getUserById(UUID.fromString(userId))
         if (user == null) {
-            response.status = HttpServletResponse.SC_UNAUTHORIZED
-            response.writer.write("User not found.")
-            return false
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid user")
         }
 
         request.setAttribute(USER_REQUEST_ATTRIBUTE, user)

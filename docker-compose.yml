@@ -7,3 +7,14 @@ services:
       POSTGRES_DB: secret-stash
       POSTGRES_USER: secret-stash
       POSTGRES_PASSWORD: secret-stash
+  app:
+    build: .
+    container_name: secret-stash
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/secret-stash
+      SPRING_DATASOURCE_USERNAME: secret-stash
+      SPRING_DATASOURCE_PASSWORD: secret-stash
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres

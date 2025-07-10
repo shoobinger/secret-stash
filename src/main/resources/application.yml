@@ -7,7 +7,7 @@ spring:
 jwt:
   # A random key ID to sign JWT. Can be rotated by changing this property.
   key-id: 3187aa78-0072-4c54-b87c-34687c573167
-  issuer: https://secret-stash
+  issuer: http://localhost:8080
   token-expiration: 1h
 
 ratelimit:
