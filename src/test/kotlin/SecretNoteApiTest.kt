@@ -5,12 +5,16 @@ import com.ivansuvorov.secretstash.api.model.SecretNote
 import com.ivansuvorov.secretstash.api.model.SecretNoteCreateRequest
 import com.ivansuvorov.secretstash.api.model.SecretNoteUpdateRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.atMost
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -179,7 +183,23 @@ class SecretNoteApiTest : AbstractTest() {
         }
     }
 
-    private fun createNote(userToken: String): UUID {
+    @Test
+    fun `should not be able to access expired note`() {
+        val userToken = registerUser()
+        val shortLivedNoteId = createNote(userToken, expirationSeconds = 1L)
+        val longLivedNoteId = createNote(userToken, expirationSeconds = 1000L)
+        await atMost Duration.ofSeconds(5L) untilAsserted {
+            mockMvc.get("/notes/$shortLivedNoteId") {
+                header("Authorization", "Bearer $userToken")
+            }.andExpect { status { isNotFound() } } // Note should expire and disappear.
+        }
+
+        mockMvc.get("/notes/$longLivedNoteId") {
+            header("Authorization", "Bearer $userToken")
+        }.andExpect { status { isOk() } }
+    }
+
+    private fun createNote(userToken: String, expirationSeconds: Long = 60): UUID {
         val created = mockMvc.post("/notes") {
             header("Authorization", "Bearer $userToken")
             contentType = MediaType.APPLICATION_JSON
@@ -187,7 +207,7 @@ class SecretNoteApiTest : AbstractTest() {
                 SecretNoteCreateRequest(
                     title = "Test",
                     content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
+                    expiresAt = Instant.now().plusSeconds(expirationSeconds)
                 )
             )
         }

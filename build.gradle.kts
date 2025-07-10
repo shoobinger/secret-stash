@@ -35,6 +35,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 
 tasks.test {

@@ -2,6 +2,8 @@ package com.ivansuvorov.secretstash.data.repository
 
 import com.ivansuvorov.secretstash.data.model.SecretNoteDbModel
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jdbc.repository.query.Modifying
+import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.repository.CrudRepository
 import java.util.UUID
 
@@ -12,4 +14,8 @@ interface SecretNoteRepository : CrudRepository<SecretNoteDbModel, UUID> {
         status: String,
         pageable: Pageable
     ): List<SecretNoteDbModel>
+
+    @Modifying
+    @Query("UPDATE secret_note SET status = 'EXPIRED' WHERE expires_at < CURRENT_TIMESTAMP")
+    fun updateExpiredStatus()
 }

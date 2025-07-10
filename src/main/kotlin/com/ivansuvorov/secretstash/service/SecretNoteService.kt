@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -87,6 +88,7 @@ class SecretNoteService(
         )
     }
 
+    @Transactional
     fun findById(caller: UserDto, noteId: UUID): SecretNoteDto? {
         val secretNote = secretNoteRepository.findByIdAndOwnerIdAndStatus(
             id = noteId,
@@ -97,6 +99,7 @@ class SecretNoteService(
         return secretNote.toDto()
     }
 
+    @Transactional
     fun findLatest(caller: UserDto, count: Int): List<SecretNoteDto> {
         val pageRequest = PageRequest.of(0, count)
         return secretNoteRepository.findByOwnerIdAndStatusOrderByCreatedAtDesc(
@@ -106,7 +109,13 @@ class SecretNoteService(
         ).map { it.toDto() }
     }
 
-    fun SecretNoteDbModel.toDto(): SecretNoteDto {
+    @Scheduled(fixedRate = 1000)
+    @Transactional
+    fun handleExpiredNotes() {
+        secretNoteRepository.updateExpiredStatus()
+    }
+
+    private fun SecretNoteDbModel.toDto(): SecretNoteDto {
         return SecretNoteDto(
             id = checkNotNull(id),
             title = title,

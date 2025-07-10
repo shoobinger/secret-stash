@@ -21,13 +21,13 @@ class JwtAuthInterceptor(
         handler: Any
     ): Boolean {
         val authHeader = request.getHeader("Authorization")
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null) {
             response.status = HttpServletResponse.SC_UNAUTHORIZED
             response.writer.write("Missing or invalid Authorization header.")
             return false
         }
 
-        val token = authHeader.substring(7)
+        val token = authHeader.removePrefix("Bearer ")
         val userId = jwtManager.verifyToken(token) // TODO handle error
 
         val user = userService.getUserById(UUID.fromString(userId))
