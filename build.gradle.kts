@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
     kotlin("jvm") version "2.1.21"
@@ -27,6 +26,8 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.10.1")
 
     implementation("at.favre.lib:bcrypt:0.10.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.2")
+    implementation("com.google.crypto.tink:tink:1.7.0") // For Ed25519.
 
     testImplementation(kotlin("test"))
     testImplementation("org.testcontainers:junit-jupiter")

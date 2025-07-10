@@ -12,14 +12,13 @@ import org.springframework.web.server.ResponseStatusException
 
 @Service
 class UserService(
-    private val passwordHasher: PasswordHasher,
+    private val userPasswordManager: UserPasswordManager,
     private val jwtManager: JwtManager,
     private val userRepository: UserRepository
 ) {
 
     @Transactional
     fun register(request: UserRegisterRequestDto) {
-
         if (userRepository.findByEmail(request.email) != null) {
             throw ResponseStatusException(
                 HttpStatus.UNPROCESSABLE_ENTITY,
@@ -27,13 +26,13 @@ class UserService(
             )
         }
 
-        val passwordHash = passwordHasher.hashPassword(request.password.toCharArray())
+        val passwordHash = userPasswordManager.hashPassword(request.password)
 
         userRepository.save(
             UserDbModel(
                 id = null,
                 email = request.email,
-                passwordHash = passwordHash.toString()
+                passwordHash = passwordHash
             )
         )
     }
@@ -45,9 +44,9 @@ class UserService(
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid username or password")
         }
 
-        val passwordValid = passwordHasher.verifyPassword(
-            passwordToVerify = request.password.toCharArray(),
-            passwordHash = user.passwordHash.toCharArray()
+        val passwordValid = userPasswordManager.verifyPassword(
+            passwordToVerify = request.password,
+            passwordHash = user.passwordHash
         )
 
         if (!passwordValid) {
