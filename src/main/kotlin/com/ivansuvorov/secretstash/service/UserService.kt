@@ -22,8 +22,19 @@ class UserService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    companion object {
+        private val EMAIL_PATTERN = Regex("^(.+)@(\\S+)$")
+    }
+
     @Transactional
     fun register(request: UserRegisterRequestDto) {
+        if (!request.email.matches(EMAIL_PATTERN)) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid email"
+            )
+        }
+
         if (userRepository.findByEmail(request.email) != null) {
             throw ResponseStatusException(
                 HttpStatus.UNPROCESSABLE_ENTITY,

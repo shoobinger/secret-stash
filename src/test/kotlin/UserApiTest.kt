@@ -4,8 +4,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.ivansuvorov.secretstash.api.model.JwtTokenResponse
 import com.ivansuvorov.secretstash.api.model.UserLoginRequest
 import com.ivansuvorov.secretstash.api.model.UserRegistrationRequest
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
 import org.springframework.test.web.servlet.post
 import java.util.UUID
 
@@ -67,5 +69,27 @@ class UserApiTest : AbstractTest() {
                     )
             }.andExpect { status { isUnauthorized() } }
             .andExpect { content { contentType(MediaType.APPLICATION_PROBLEM_JSON) } }
+    }
+
+    @Test
+    fun `should validate email`() {
+        val result = mockMvc
+            .post("/users/register") {
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    objectMapper.writeValueAsString(
+                        UserRegistrationRequest(
+                            email = "notanemail###",
+                            password = "123456",
+                        ),
+                    )
+            }
+            .andExpect { status { isBadRequest() } }
+            .andExpect { content { contentType(MediaType.APPLICATION_PROBLEM_JSON) } }
+            .andReturn()
+            .response.contentAsString
+            .let { objectMapper.readValue<ProblemDetail>(it) }
+
+        assertThat(result.detail).isEqualTo("Invalid email")
     }
 }
