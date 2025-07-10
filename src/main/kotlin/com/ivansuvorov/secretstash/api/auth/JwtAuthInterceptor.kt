@@ -1,7 +1,6 @@
 package com.ivansuvorov.secretstash.api.auth
 
 import com.ivansuvorov.secretstash.service.JwtManager
-import com.ivansuvorov.secretstash.service.SecretNoteService
 import com.ivansuvorov.secretstash.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
