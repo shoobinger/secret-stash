@@ -6,6 +6,7 @@ import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteStatus
 import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
+import com.ivansuvorov.secretstash.service.model.UserDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -22,7 +23,7 @@ class SecretNoteService(
     private val logger: Logger = LoggerFactory.getLogger(SecretNoteService::class.java)
 
     @Transactional
-    fun create(request: SecretNoteCreateRequestDto): SecretNoteDto {
+    fun create(caller: UserDto, request: SecretNoteCreateRequestDto): SecretNoteDto {
         logger.info("Creating a new secret note")
 
         val secretNoteDbModel = secretNoteRepository.save(
@@ -32,21 +33,23 @@ class SecretNoteService(
                 content = request.content,
                 status = SecretNoteStatus.ACTIVE.name,
                 expiresAt = request.expiresAt,
-                ownerId = UUID.randomUUID(), // TODO
+                ownerId = caller.id,
                 createdAt = Instant.now()
             )
         )
+
         return secretNoteDbModel.toDto()
     }
 
     @Transactional
-    fun update(id: UUID, request: SecretNoteUpdateRequestDto): SecretNoteDto {
-        logger.info("Updating secret note with id $id")
+    fun update(caller: UserDto, noteId: UUID, request: SecretNoteUpdateRequestDto): SecretNoteDto {
+        logger.info("Updating secret note with id $noteId")
 
-        val secretNote = secretNoteRepository.findByIdAndStatus(id, SecretNoteStatus.ACTIVE.name)
-        if (secretNote == null) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
+        val secretNote = secretNoteRepository.findByIdAndOwnerIdAndStatus(
+            id = noteId,
+            ownerId = caller.id,
+            status = SecretNoteStatus.ACTIVE.name
+        ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
         val secretNoteDbModel = secretNoteRepository.save(
             SecretNoteDbModel(
@@ -63,12 +66,12 @@ class SecretNoteService(
     }
 
     @Transactional
-    fun delete(id: UUID) {
-
-        val secretNote = secretNoteRepository.findByIdAndStatus(id, SecretNoteStatus.ACTIVE.name)
-        if (secretNote == null) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
+    fun delete(caller: UserDto, noteId: UUID) {
+        val secretNote = secretNoteRepository.findByIdAndOwnerIdAndStatus(
+            id = noteId,
+            ownerId = caller.id,
+            status = SecretNoteStatus.ACTIVE.name
+        ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Secret note not found or inaccessible")
 
         secretNoteRepository.save(
             SecretNoteDbModel(
@@ -83,11 +86,13 @@ class SecretNoteService(
         )
     }
 
-    fun findById(id: UUID): SecretNoteDto? {
-        val secretNote = secretNoteRepository.findByIdAndStatus(id, SecretNoteStatus.ACTIVE.name)
-        if (secretNote == null) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
+    fun findById(caller: UserDto, noteId: UUID): SecretNoteDto? {
+        val secretNote = secretNoteRepository.findByIdAndOwnerIdAndStatus(
+            id = noteId,
+            ownerId = caller.id,
+            status = SecretNoteStatus.ACTIVE.name
+        ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Secret note not found or inaccessible")
+
         return secretNote.toDto()
     }
 

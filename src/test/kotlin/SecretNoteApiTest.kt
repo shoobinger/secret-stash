@@ -16,28 +16,13 @@ import java.time.Instant
 class SecretNoteApiTest : AbstractTest() {
 
     @Test
-    fun `should not be able to call notes API without JWT token`() {
-        // Try to create a secure note without providing a token.
-        mockMvc.post("/notes") {
-            this.contentType = MediaType.APPLICATION_JSON
-            this.content = objectMapper.writeValueAsString(
-                SecretNoteCreateRequest(
-                    title = "Test",
-                    content = "Test content",
-                    expiresAt = Instant.now().plusSeconds(60L)
-                )
-            )
-        }
-            .andExpect {
-                status { isUnauthorized() }
-            }
-    }
-
-    @Test
     fun `should be able to create a secret note`() {
+        val userToken = registerUser()
+
         val created = mockMvc.post("/notes") {
-            this.contentType = MediaType.APPLICATION_JSON
-            this.content = objectMapper.writeValueAsString(
+            header("Authorization", "Bearer $userToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
                 SecretNoteCreateRequest(
                     title = "Test",
                     content = "Test content",
@@ -57,6 +42,7 @@ class SecretNoteApiTest : AbstractTest() {
         val id = created.id
 
         val foundByid = mockMvc.get("/notes/$id") {
+            header("Authorization", "Bearer $userToken")
             accept = MediaType.APPLICATION_JSON
         }.andExpect { status { isOk() } }
             .andReturn()
@@ -69,9 +55,12 @@ class SecretNoteApiTest : AbstractTest() {
 
     @Test
     fun `should be able to update a secret note`() {
+        val userToken = registerUser()
+
         val created = mockMvc.post("/notes") {
-            this.contentType = MediaType.APPLICATION_JSON
-            this.content = objectMapper.writeValueAsString(
+            header("Authorization", "Bearer $userToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
                 SecretNoteCreateRequest(
                     title = "Test",
                     content = "Test content",
@@ -88,8 +77,9 @@ class SecretNoteApiTest : AbstractTest() {
         val id = created.id
 
         val updated = mockMvc.put("/notes/$id") {
-            this.contentType = MediaType.APPLICATION_JSON
-            this.content = objectMapper.writeValueAsString(
+            header("Authorization", "Bearer $userToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
                 SecretNoteUpdateRequest(
                     title = "Test (updated)",
                     content = "Test content (updated)",
@@ -110,9 +100,12 @@ class SecretNoteApiTest : AbstractTest() {
 
     @Test
     fun `should be able to delete a secret note`() {
+        val userToken = registerUser()
+
         val created = mockMvc.post("/notes") {
-            this.contentType = MediaType.APPLICATION_JSON
-            this.content = objectMapper.writeValueAsString(
+            header("Authorization", "Bearer $userToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
                 SecretNoteCreateRequest(
                     title = "Test",
                     content = "Test content",
@@ -128,13 +121,84 @@ class SecretNoteApiTest : AbstractTest() {
 
         val id = created.id
 
-        mockMvc.delete("/notes/$id")
-            .andExpect {
-                status { isOk() }
-            }
+        mockMvc.delete("/notes/$id") {
+            header("Authorization", "Bearer $userToken")
+        }.andExpect {
+            status { isOk() }
+        }
 
         mockMvc.get("/notes/$id") {
+            header("Authorization", "Bearer $userToken")
             accept = MediaType.APPLICATION_JSON
         }.andExpect { status { isNotFound() } }
+    }
+
+    @Test
+    fun `should not be able to create a note without a JWT token`() {
+        mockMvc.post("/notes") {
+            // Not including any authorization header.
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                SecretNoteCreateRequest(
+                    title = "Test",
+                    content = "Test content",
+                    expiresAt = Instant.now().plusSeconds(60L)
+                )
+            )
+        }
+            .andExpect {
+                status { isUnauthorized() }
+            }
+    }
+
+    @Test
+    fun `should not be able to access a note of a different user`() {
+        val firstUserToken = registerUser()
+        val secondUserToken = registerUser()
+
+        // First user creates a new note.
+        val created = mockMvc.post("/notes") {
+            header("Authorization", "Bearer $firstUserToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                SecretNoteCreateRequest(
+                    title = "Test",
+                    content = "Test content",
+                    expiresAt = Instant.now().plusSeconds(60L)
+                )
+            )
+        }
+            .andExpect { status { isOk() } }
+            .andReturn()
+            .response.contentAsString.let { objectMapper.readValue<SecretNote>(it) }
+
+        val id = created.id
+
+        // Second user tries to access this note.
+        mockMvc.get("/notes/$id") {
+            header("Authorization", "Bearer $secondUserToken")
+            accept = MediaType.APPLICATION_JSON
+        }
+            .andExpect { status { isNotFound() } }
+
+        mockMvc.put("/notes/$id") {
+            header("Authorization", "Bearer $secondUserToken")
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(
+                SecretNoteUpdateRequest(
+                    title = "Test (updated)",
+                    content = "Test content (updated)",
+                )
+            )
+        }
+            .andExpect {
+                status { isNotFound() }
+            }
+
+        mockMvc.delete("/notes/$id") {
+            header("Authorization", "Bearer $secondUserToken")
+        }.andExpect {
+            status { isNotFound() }
+        }
     }
 }

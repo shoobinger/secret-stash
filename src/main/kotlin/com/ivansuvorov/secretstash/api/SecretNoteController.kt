@@ -7,6 +7,8 @@ import com.ivansuvorov.secretstash.service.SecretNoteService
 import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteUpdateRequestDto
+import com.ivansuvorov.secretstash.service.model.UserDto
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,9 +26,13 @@ class SecretNoteController(
 ) {
 
     @PostMapping
-    fun createSecretNote(@RequestBody createRequest: SecretNoteCreateRequest): SecretNote {
+    fun createSecretNote(
+        @RequestBody createRequest: SecretNoteCreateRequest,
+        httpRequest: HttpServletRequest
+    ): SecretNote {
         val secretNote = secretNoteService.create(
-            SecretNoteCreateRequestDto(
+            caller = httpRequest.getAttribute("user") as UserDto,
+            request = SecretNoteCreateRequestDto(
                 title = createRequest.title,
                 content = createRequest.content,
                 expiresAt = createRequest.expiresAt
@@ -36,15 +42,26 @@ class SecretNoteController(
     }
 
     @GetMapping("/{id}")
-    fun getSecretNote(@PathVariable id: UUID): SecretNote? {
-        val secretNote = secretNoteService.findById(id)
+    fun getSecretNote(
+        @PathVariable id: UUID,
+        httpRequest: HttpServletRequest
+    ): SecretNote? {
+        val secretNote = secretNoteService.findById(
+            caller = httpRequest.getAttribute("user") as UserDto,
+            noteId = id
+        )
         return secretNote?.toApiModel()
     }
 
     @PutMapping("/{id}")
-    fun updateSecretNote(@PathVariable id: UUID, @RequestBody updateRequest: SecretNoteUpdateRequest): SecretNote {
+    fun updateSecretNote(
+        @PathVariable id: UUID,
+        @RequestBody updateRequest: SecretNoteUpdateRequest,
+        httpRequest: HttpServletRequest
+    ): SecretNote {
         val secretNote = secretNoteService.update(
-            id = id,
+            caller = httpRequest.getAttribute("user") as UserDto,
+            noteId = id,
             request = SecretNoteUpdateRequestDto(
                 title = updateRequest.title,
                 content = updateRequest.content,
@@ -55,8 +72,11 @@ class SecretNoteController(
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSecretNote(@PathVariable id: UUID) {
-        secretNoteService.delete(id)
+    fun deleteSecretNote(@PathVariable id: UUID, httpRequest: HttpServletRequest) {
+        secretNoteService.delete(
+            caller = httpRequest.getAttribute("user") as UserDto,
+            noteId = id
+        )
     }
 
     private fun SecretNoteDto.toApiModel(): SecretNote {
