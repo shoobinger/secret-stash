@@ -32,6 +32,9 @@ dependencies {
 
     implementation("io.github.resilience4j:resilience4j-ratelimiter:2.2.0")
 
+    implementation("org.webjars:swagger-ui:4.18.2")
+    implementation("org.webjars:webjars-locator-core:0.59")
+
     testImplementation(kotlin("test"))
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -56,7 +59,7 @@ tasks.withType<KotlinCompile> {
 
 openApiGenerate {
     generatorName.set("kotlin")
-    inputSpec = "$rootDir/secret-stash.openapi.yaml"
+    inputSpec = "$rootDir/src/main/resources/static/openapi.yaml"
     outputDir.set("$buildDir/generated")
     modelPackage = "com.ivansuvorov.secretstash.api.model"
     configOptions.set(
