@@ -10,6 +10,10 @@ jwt:
   issuer: http://localhost:8080
   token-expiration: 1h
 
+public:
+  host:
+  expiration-time: 1h
+
 ratelimit:
   period: 1s
   user-limit: 60

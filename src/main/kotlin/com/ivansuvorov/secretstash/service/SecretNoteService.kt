@@ -1,6 +1,7 @@
 package com.ivansuvorov.secretstash.service
 
 import com.ivansuvorov.secretstash.data.model.SecretNoteDbModel
+import com.ivansuvorov.secretstash.data.model.SecretNoteType
 import com.ivansuvorov.secretstash.data.repository.SecretNoteRepository
 import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
 import com.ivansuvorov.secretstash.service.model.SecretNoteDto
@@ -47,6 +48,7 @@ class SecretNoteService(
                     title = request.title,
                     content = request.content,
                     status = SecretNoteStatus.ACTIVE.name,
+                    type = SecretNoteType.SECRET,
                     expiresAt = request.expiresAt,
                     ownerId = caller.id,
                     createdAt = Instant.now(),
@@ -83,6 +85,7 @@ class SecretNoteService(
                     content = request.content,
                     status = secretNote.status,
                     expiresAt = request.expiresAt,
+                    type = SecretNoteType.SECRET,
                     ownerId = secretNote.ownerId,
                     createdAt = secretNote.createdAt,
                 ),
@@ -112,6 +115,7 @@ class SecretNoteService(
                 status = SecretNoteStatus.DELETED.name,
                 expiresAt = secretNote.expiresAt,
                 ownerId = secretNote.ownerId,
+                type = SecretNoteType.SECRET,
                 createdAt = secretNote.createdAt,
             ),
         )
@@ -148,6 +152,45 @@ class SecretNoteService(
                 status = SecretNoteStatus.ACTIVE.name,
                 pageable = pageRequest,
             ).map { it.toDto() }
+    }
+
+    @Transactional
+    fun shareNote(caller: UserDto, noteId: UUID) {
+        logger.debug("Sharing secret note")
+
+        val secretNote =
+            secretNoteRepository.findByIdAndOwnerIdAndStatus(
+                id = noteId,
+                ownerId = caller.id,
+                status = SecretNoteStatus.ACTIVE.name,
+            ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+
+        if (secretNote.type == SecretNoteType.PUBLIC) {
+            return
+        }
+
+        secretNoteRepository.save(
+            SecretNoteDbModel(
+                id = secretNote.id,
+                title = secretNote.title,
+                content = secretNote.content,
+                status = secretNote.status,
+                expiresAt = secretNote.expiresAt,
+                type = SecretNoteType.PUBLIC,
+                ownerId = secretNote.ownerId,
+                createdAt = secretNote.createdAt,
+            ),
+        )
+    }
+
+    fun findPublicNote(noteId: UUID): SecretNoteDto? {
+        val secretNote =
+            secretNoteRepository.findByIdAndType(
+                id = noteId,
+                type = SecretNoteType.PUBLIC
+            ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Secret note not found or inaccessible")
+
+        return secretNote.toDto()
     }
 
     @Scheduled(fixedRate = 1000)

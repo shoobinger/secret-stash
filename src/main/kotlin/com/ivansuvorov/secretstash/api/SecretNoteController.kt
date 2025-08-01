@@ -3,7 +3,9 @@ package com.ivansuvorov.secretstash.api
 import com.ivansuvorov.secretstash.api.auth.JwtAuthInterceptor.Companion.USER_REQUEST_ATTRIBUTE
 import com.ivansuvorov.secretstash.api.model.SecretNote
 import com.ivansuvorov.secretstash.api.model.SecretNoteCreateRequest
+import com.ivansuvorov.secretstash.api.model.SecretNotePublicLink
 import com.ivansuvorov.secretstash.api.model.SecretNoteUpdateRequest
+import com.ivansuvorov.secretstash.configuration.properties.PublicProperties
 import com.ivansuvorov.secretstash.service.RateLimiterService
 import com.ivansuvorov.secretstash.service.SecretNoteService
 import com.ivansuvorov.secretstash.service.model.SecretNoteCreateRequestDto
@@ -31,6 +33,7 @@ import java.util.UUID
 class SecretNoteController(
     private val secretNoteService: SecretNoteService,
     private val rateLimiterService: RateLimiterService,
+    private val publicProperties: PublicProperties
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -113,11 +116,11 @@ class SecretNoteController(
                 caller = user,
                 noteId = id,
                 request =
-                SecretNoteUpdateRequestDto(
-                    title = updateRequest.title,
-                    content = updateRequest.content,
-                    expiresAt = updateRequest.expiresAt,
-                ),
+                    SecretNoteUpdateRequestDto(
+                        title = updateRequest.title,
+                        content = updateRequest.content,
+                        expiresAt = updateRequest.expiresAt,
+                    ),
             )
         return secretNote.toApiModel()
     }
@@ -136,6 +139,23 @@ class SecretNoteController(
         secretNoteService.delete(
             caller = user,
             noteId = id,
+        )
+    }
+
+    @PostMapping("/{id}/share")
+    fun shareSecretNote(
+        @PathVariable id: UUID,
+        @RequestAttribute(USER_REQUEST_ATTRIBUTE) user: UserDto,
+    ): SecretNotePublicLink {
+        rateLimiterService.checkForUser(user.id)
+
+        MDC.put("requestId", UUID.randomUUID().toString())
+        MDC.put("userId", user.id.toString())
+
+        secretNoteService.shareNote(user, id)
+
+        return SecretNotePublicLink(
+            link = "${publicProperties.host}/public/note/$id"
         )
     }
 

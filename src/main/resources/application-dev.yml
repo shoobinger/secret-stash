@@ -3,3 +3,6 @@ spring:
     url: "jdbc:postgresql://localhost:5432/secret-stash"
     username: secret-stash
     password: secret-stash
+
+public:
+  host: http://localhost:8080

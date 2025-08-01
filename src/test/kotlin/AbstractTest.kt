@@ -3,6 +3,8 @@ package com.ivansuvorov.secretstash
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.ivansuvorov.secretstash.api.model.JwtTokenResponse
+import com.ivansuvorov.secretstash.api.model.SecretNote
+import com.ivansuvorov.secretstash.api.model.SecretNoteCreateRequest
 import com.ivansuvorov.secretstash.api.model.UserLoginRequest
 import com.ivansuvorov.secretstash.api.model.UserRegistrationRequest
 import org.junit.jupiter.api.TestInstance
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.post
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import java.time.Duration
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -95,5 +98,30 @@ abstract class AbstractTest {
                 .let { objectMapper.readValue<JwtTokenResponse>(it) }
 
         return token.token
+    }
+
+    protected fun createNote(
+        userToken: String,
+        expirationSeconds: Long = 60,
+    ): UUID {
+        val created =
+            mockMvc
+                .post("/notes") {
+                    header("Authorization", "Bearer $userToken")
+                    contentType = MediaType.APPLICATION_JSON
+                    content =
+                        objectMapper.writeValueAsString(
+                            SecretNoteCreateRequest(
+                                title = "Test",
+                                content = "Test content",
+                                expiresAt = Instant.now().plusSeconds(expirationSeconds),
+                            ),
+                        )
+                }.andExpect { status { isCreated() } }
+                .andReturn()
+                .response.contentAsString
+                .let { objectMapper.readValue<SecretNote>(it) }
+
+        return created.id
     }
 }

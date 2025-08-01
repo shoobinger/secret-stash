@@ -214,28 +214,4 @@ class SecretNoteApiTest : AbstractTest() {
             }.andExpect { status { isOk() } }
     }
 
-    private fun createNote(
-        userToken: String,
-        expirationSeconds: Long = 60,
-    ): UUID {
-        val created =
-            mockMvc
-                .post("/notes") {
-                    header("Authorization", "Bearer $userToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content =
-                        objectMapper.writeValueAsString(
-                            SecretNoteCreateRequest(
-                                title = "Test",
-                                content = "Test content",
-                                expiresAt = Instant.now().plusSeconds(expirationSeconds),
-                            ),
-                        )
-                }.andExpect { status { isCreated() } }
-                .andReturn()
-                .response.contentAsString
-                .let { objectMapper.readValue<SecretNote>(it) }
-
-        return created.id
-    }
 }
